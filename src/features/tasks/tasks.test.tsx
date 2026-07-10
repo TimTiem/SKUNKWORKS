@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '../../db/db'
 import { CaptureBar } from '../capture/CaptureBar'
 import { TaskList } from './TaskList'
+
+// Keep this test hermetic: sync is fire-and-forget noise here.
+vi.mock('../../sync/sync', () => ({ requestSync: vi.fn() }))
 
 /**
  * Integration: real Dexie against fake-indexeddb — capture → live list →

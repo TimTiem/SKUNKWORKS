@@ -4,19 +4,28 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './sync/supabase'
 import App from './App'
 
-vi.mock('./sync/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn(),
-      onAuthStateChange: vi.fn(() => ({
-        data: { subscription: { unsubscribe: vi.fn() } },
-      })),
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
+vi.mock('./sync/supabase', () => {
+  // Permissive empty query chain: the Shell fires a background sync on mount.
+  const chain: Record<string, unknown> = {
+    then: (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
+      Promise.resolve({ data: [], error: null }).then(resolve, reject),
+  }
+  for (const m of ['select', 'gt', 'order', 'limit', 'upsert']) chain[m] = () => chain
+  return {
+    supabase: {
+      from: vi.fn(() => chain),
+      auth: {
+        getSession: vi.fn(),
+        onAuthStateChange: vi.fn(() => ({
+          data: { subscription: { unsubscribe: vi.fn() } },
+        })),
+        signInWithPassword: vi.fn(),
+        signUp: vi.fn(),
+        signOut: vi.fn(),
+      },
     },
-  },
-}))
+  }
+})
 
 function mockSession(session: Session | null) {
   vi.mocked(supabase.auth.getSession).mockResolvedValue({

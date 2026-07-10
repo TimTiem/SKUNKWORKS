@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { CaptureBar } from '../features/capture/CaptureBar'
 import { TaskList } from '../features/tasks/TaskList'
 import { supabase } from '../sync/supabase'
+import { startSyncTriggers } from '../sync/sync'
 
 /**
  * Signed-in layout: capture on top, the list right under it. Gamification
@@ -9,6 +11,9 @@ import { supabase } from '../sync/supabase'
  * Settings (V1).
  */
 export function Shell({ session }: { session: Session }) {
+  // Sync on open/foreground/online — mounted only while signed in.
+  useEffect(() => startSyncTriggers(), [])
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
       <header className="flex items-center justify-between pt-1">
