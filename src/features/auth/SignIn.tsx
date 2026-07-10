@@ -1,60 +1,37 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../../sync/supabase'
 
-type Step = 'email' | 'code'
+type Mode = 'signIn' | 'signUp'
 
 /**
- * One-field magic-link/OTP sign-in (FR-54, PRD §3.1).
+ * Email + password sign-in (FR-54's no-SMTP alternative — product decision
+ * 2026-07-10: no mail-service dependency, no cost, and no iOS PWA
+ * link-opens-in-Safari problem). Requires "Confirm email" OFF in Supabase.
  *
- * The Supabase email carries both a link and a 6-digit code. The code path
- * exists because an installed iOS PWA has storage isolated from Safari —
- * tapping the link signs in the *browser*, not the home-screen app. Typing
- * the code signs in right here, on any device (CLAUDE.md → iOS realities).
- *
- * Copy is encouraging, never gate-keeping (P8). On success we do nothing:
- * `onAuthStateChange` flips the app to the signed-in shell.
+ * Sign-in happens once per device; the session is cached for offline reuse
+ * (FR-55). Copy is encouraging, never gate-keeping (P8). On success we do
+ * nothing: `onAuthStateChange` flips the app to the signed-in shell.
  */
 export function SignIn() {
-  const [step, setStep] = useState<Step>('email')
+  const [mode, setMode] = useState<Mode>('signIn')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function sendCode(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
     setError(null)
-    const { error: sendError } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin },
-    })
+    const { error: authError } =
+      mode === 'signIn'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password })
     setBusy(false)
-    if (sendError) {
-      setError(
-        navigator.onLine
-          ? "That didn't go through — give it another try in a moment."
-          : "You're offline. Connect once to sign in — after that, everything works offline.",
-      )
-      return
-    }
-    setStep('code')
+    if (authError) setError(gentleMessage(authError.message))
   }
 
-  async function verifyCode(event: FormEvent) {
-    event.preventDefault()
-    setBusy(true)
-    setError(null)
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: code.trim(),
-      type: 'email',
-    })
-    setBusy(false)
-    if (verifyError) {
-      setError("That code didn't match — check the newest email and try again.")
-    }
-  }
+  const signingIn = mode === 'signIn'
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-6 p-6">
@@ -64,73 +41,56 @@ export function SignIn() {
       </div>
 
       <div className="w-full max-w-sm rounded-card bg-surface-raised p-6 shadow-card">
-        {step === 'email' ? (
-          <form onSubmit={(e) => void sendCode(e)} className="flex flex-col gap-3">
-            <label htmlFor="email" className="text-sm text-ink-base">
-              One email, no password — we&apos;ll send you a sign-in code.
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoFocus
-              autoComplete="email"
-              inputMode="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-control bg-surface-overlay px-4 py-3 text-ink-strong placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-base"
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-control bg-accent-base px-4 py-3 font-medium text-ink-strong transition-colors duration-enter ease-standard hover:bg-accent-strong disabled:opacity-60"
-            >
-              {busy ? 'Sending…' : 'Send sign-in code'}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={(e) => void verifyCode(e)} className="flex flex-col gap-3">
-            <p className="text-sm text-ink-base">
-              Check your email — enter the 6-digit code, or tap the link in the message if
-              you&apos;re on this device&apos;s browser.
-            </p>
-            <label htmlFor="otp-code" className="sr-only">
-              6-digit code
-            </label>
-            <input
-              id="otp-code"
-              type="text"
-              required
-              autoFocus
-              autoComplete="one-time-code"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="123456"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full rounded-control bg-surface-overlay px-4 py-3 text-center text-xl tracking-[0.4em] text-ink-strong placeholder:tracking-normal placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-base"
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-control bg-accent-base px-4 py-3 font-medium text-ink-strong transition-colors duration-enter ease-standard hover:bg-accent-strong disabled:opacity-60"
-            >
-              {busy ? 'Signing in…' : 'Sign in'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setStep('email')
-                setCode('')
-                setError(null)
-              }}
-              className="text-sm text-ink-muted underline-offset-2 hover:underline"
-            >
-              Use a different email
-            </button>
-          </form>
-        )}
+        <p className="mb-3 text-sm text-ink-base">
+          One account, three devices. Sign in once — after that it works offline.
+        </p>
+        <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-3">
+          <label htmlFor="email" className="sr-only">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoFocus
+            autoComplete="email"
+            inputMode="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-control bg-surface-overlay px-4 py-3 text-ink-strong placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-base"
+          />
+          <label htmlFor="password" className="sr-only">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete={signingIn ? 'current-password' : 'new-password'}
+            placeholder="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-control bg-surface-overlay px-4 py-3 text-ink-strong placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-base"
+          />
+          <button
+            type="submit"
+            disabled={busy}
+            className="rounded-control bg-accent-base px-4 py-3 font-medium text-ink-strong transition-colors duration-enter ease-standard hover:bg-accent-strong disabled:opacity-60"
+          >
+            {busy ? 'One moment…' : signingIn ? 'Sign in' : 'Create account'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode(signingIn ? 'signUp' : 'signIn')
+              setError(null)
+            }}
+            className="text-sm text-ink-muted underline-offset-2 hover:underline"
+          >
+            {signingIn ? 'First time here? Create your account' : 'Already set up? Sign in'}
+          </button>
+        </form>
 
         {error && (
           <p role="alert" className="mt-3 text-sm text-ink-base">
@@ -140,4 +100,20 @@ export function SignIn() {
       </div>
     </main>
   )
+}
+
+function gentleMessage(message: string): string {
+  if (!navigator.onLine) {
+    return "You're offline. Connect once to sign in — after that, everything works offline."
+  }
+  if (/invalid login credentials/i.test(message)) {
+    return "That email + password combo didn't match — double-check and try again."
+  }
+  if (/already registered/i.test(message)) {
+    return 'This email already has an account — use "Sign in" instead.'
+  }
+  if (/password should be at least/i.test(message)) {
+    return 'Almost — the password needs at least 6 characters.'
+  }
+  return "That didn't go through — give it another try in a moment."
 }

@@ -11,8 +11,8 @@ vi.mock('./sync/supabase', () => ({
       onAuthStateChange: vi.fn(() => ({
         data: { subscription: { unsubscribe: vi.fn() } },
       })),
-      signInWithOtp: vi.fn(),
-      verifyOtp: vi.fn(),
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
       signOut: vi.fn(),
     },
   },
@@ -37,7 +37,7 @@ describe('App', () => {
     mockSession(null)
     render(<App />)
 
-    expect(await screen.findByLabelText(/one email/i)).toBeInTheDocument()
+    expect(await screen.findByLabelText(/^email$/i)).toBeInTheDocument()
   })
 
   it('shows the signed-in shell when a cached session exists (offline-safe)', async () => {
