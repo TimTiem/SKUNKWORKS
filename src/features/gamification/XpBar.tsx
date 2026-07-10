@@ -27,6 +27,9 @@ export function XpBar() {
           ? { text: `+${xp - before.xp} XP`, level: false }
           : null
     if (!next) return
+    // Reacting to the Dexie live-query store (an external system) is exactly
+    // what an effect is for; the transient pop is derived from that change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPop((p) => ({ ...next, seq: (p?.seq ?? 0) + 1 }))
   }, [xp, level])
 

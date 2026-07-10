@@ -1,4 +1,5 @@
 import { startFocus } from '../focus/focusActions'
+import { useFactReveal } from '../facts/factRevealContext'
 import type { TaskRow } from '../../types/rows'
 import { completeTask, deferTask, softDeleteTask } from './taskActions'
 
@@ -8,12 +9,13 @@ import { completeTask, deferTask, softDeleteTask } from './taskActions'
  * red, no alarm (P8). Targets are ≥44px.
  */
 export function TaskItem({ task }: { task: TaskRow }) {
+  const revealFact = useFactReveal()
   return (
     <li className="motion-enter flex items-center gap-1 rounded-card bg-surface-raised py-1 pl-1 pr-2 shadow-card">
       <button
         type="button"
         aria-label={`Complete "${task.text}"`}
-        onClick={() => void completeTask(task)}
+        onClick={() => void completeTask(task).then(revealFact)}
         className="group grid size-11 shrink-0 place-items-center"
       >
         <span className="grid size-6 place-items-center rounded-pill border-2 border-ink-muted transition-colors duration-enter ease-standard group-hover:border-success">

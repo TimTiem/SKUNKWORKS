@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { CaptureBar } from '../features/capture/CaptureBar'
 import { FocusScreen } from '../features/focus/FocusScreen'
 import { useActiveFocus } from '../features/focus/useActiveFocus'
+import { FactRevealProvider } from '../features/facts/useFactReveal'
 import { XpBar } from '../features/gamification/XpBar'
 import { RewardsScreen } from '../features/rewards/RewardsScreen'
 import { TaskList } from '../features/tasks/TaskList'
@@ -29,9 +30,19 @@ export function Shell({ session }: { session: Session }) {
 
   const { focus, task, loading } = useActiveFocus()
   if (loading) return null
-  if (focus) return <FocusScreen focus={focus} task={task} />
+
+  // The provider wraps both surfaces so completing a task from the list OR
+  // from focus can raise the same app-level fact card.
+  if (focus) {
+    return (
+      <FactRevealProvider>
+        <FocusScreen focus={focus} task={task} />
+      </FactRevealProvider>
+    )
+  }
 
   return (
+    <FactRevealProvider>
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
       <header className="flex items-center justify-between pt-1">
         <h1 className="text-lg font-bold tracking-tight text-ink-strong">SKUNKWORKS</h1>
@@ -67,5 +78,6 @@ export function Shell({ session }: { session: Session }) {
         </button>
       </footer>
     </div>
+    </FactRevealProvider>
   )
 }
