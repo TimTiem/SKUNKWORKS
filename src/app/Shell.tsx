@@ -1,21 +1,24 @@
 import type { Session } from '@supabase/supabase-js'
+import { CaptureBar } from '../features/capture/CaptureBar'
+import { TaskList } from '../features/tasks/TaskList'
 import { supabase } from '../sync/supabase'
 
 /**
- * Signed-in layout shell. The placeholder body is replaced by capture + task
- * list in Wave 1 slice 3. Sign-out lives here quietly until Settings (V1).
+ * Signed-in layout: capture on top, the list right under it. Gamification
+ * header (XP bar) lands in slice 5; sign-out lives here quietly until
+ * Settings (V1).
  */
 export function Shell({ session }: { session: Session }) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-        <h1 className="text-4xl font-bold tracking-tight text-ink-strong">SKUNKWORKS</h1>
-        <p className="text-ink-muted">Start small. Win now.</p>
-        <p className="rounded-pill bg-surface-raised px-4 py-1.5 text-sm text-accent-soft shadow-card">
-          Scaffold ready — Wave 1 in progress
-        </p>
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
+      <header className="flex items-center justify-between pt-1">
+        <h1 className="text-lg font-bold tracking-tight text-ink-strong">SKUNKWORKS</h1>
+      </header>
+      <CaptureBar />
+      <main className="flex-1">
+        <TaskList />
       </main>
-      <footer className="flex items-center justify-center gap-3 p-4 text-xs text-ink-muted">
+      <footer className="flex items-center justify-center gap-3 p-2 text-xs text-ink-muted">
         <span>Signed in as {session.user.email}</span>
         <button
           type="button"
