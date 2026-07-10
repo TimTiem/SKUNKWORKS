@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { titleForLevel } from '../../domain/levels'
+import { celebrationClass } from '../../ui/motion/celebrate'
 import { useStats } from './useStats'
 import { getLastSeenXp, setLastSeenXp } from './xpMemory'
 
@@ -79,9 +80,11 @@ export function XpBar() {
         <p
           key={pop.seq}
           role="status"
-          className={`celebrate-pop absolute -top-3 right-3 rounded-pill px-3 py-1 text-sm font-semibold shadow-pop ${
-            pop.level ? 'bg-accent-strong text-accent-ink' : 'bg-surface-overlay text-accent-soft'
-          }`}
+          className={`absolute -top-3 right-3 rounded-pill px-3 py-1 text-sm font-semibold shadow-pop ${
+            // Level-ups rotate the celebration set by level; everyday +XP pops
+            // stay the quick, consistent pop.
+            pop.level ? celebrationClass(stats.level) : 'celebrate-pop'
+          } ${pop.level ? 'bg-accent-strong text-accent-ink' : 'bg-surface-overlay text-accent-soft'}`}
         >
           {pop.text}
         </p>

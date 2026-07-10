@@ -16,19 +16,32 @@
 }
 
 @layer components {
-  /* Motion vocabulary — enter / celebrate (exit variants land with the first
-     component that orchestrates unmounts). Durations and easings mirror
+  /* Motion vocabulary — enter / celebrate. Durations and easings mirror
      ui/tokens.ts → motion. Reduced motion gets a static appearance:
      non-negotiable, part of MVP. */
   .motion-enter {
     animation: motion-enter 180ms cubic-bezier(0.2, 0, 0, 1) both;
   }
+  /* Varied celebration set — rotated per event to fight novelty decay
+     (celebration is never a single repeated animation). */
   .celebrate-pop {
     animation: celebrate-pop 180ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
+  .celebrate-rise {
+    animation: celebrate-rise 320ms cubic-bezier(0, 0, 0, 1) both;
+  }
+  .celebrate-spring {
+    animation: celebrate-spring 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .celebrate-sway {
+    animation: celebrate-sway 600ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
   @media (prefers-reduced-motion: reduce) {
     .motion-enter,
-    .celebrate-pop {
+    .celebrate-pop,
+    .celebrate-rise,
+    .celebrate-spring,
+    .celebrate-sway {
       animation: none;
     }
   }
@@ -45,5 +58,40 @@
   from {
     opacity: 0;
     transform: translateY(6px) scale(0.9);
+  }
+}
+
+@keyframes celebrate-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes celebrate-spring {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes celebrate-sway {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(0) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
   }
 }

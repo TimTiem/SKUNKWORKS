@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TIER_DEFAULTS } from '../../domain/rewards'
 import { Button } from '../../ui/primitives/Button'
+import { celebrationClass } from '../../ui/motion/celebrate'
 import type { RewardRow } from '../../types/rows'
 import { useStats } from '../gamification/useStats'
 import { RewardForm } from './RewardForm'
@@ -69,8 +70,10 @@ export function RewardsScreen() {
   )
 }
 
-/** "You earned this" — the whole framing, celebratory and brief (P8). */
+/** "You earned this" — the whole framing, celebratory and brief (P8).
+ *  The variant rotates per redemption so it doesn't go stale. */
 function RedeemCelebration({ name, onDone }: { name: string; onDone: () => void }) {
+  const variant = useRef(celebrationClass(Math.floor(Date.now() / 1000))).current
   useEffect(() => {
     const timer = setTimeout(onDone, 3200)
     return () => clearTimeout(timer)
@@ -79,7 +82,7 @@ function RedeemCelebration({ name, onDone }: { name: string; onDone: () => void 
   return (
     <div
       role="status"
-      className="celebrate-pop fixed inset-x-0 bottom-8 z-10 mx-auto w-fit max-w-[90%] rounded-card bg-accent-strong px-6 py-4 text-center shadow-pop"
+      className={`${variant} fixed inset-x-0 bottom-8 z-10 mx-auto w-fit max-w-[90%] rounded-card bg-accent-strong px-6 py-4 text-center shadow-pop`}
     >
       <p className="font-semibold text-accent-ink">You earned this! 🎉</p>
       <p className="break-words text-accent-ink">{name}</p>

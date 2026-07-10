@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss'
 import plugin from 'tailwindcss/plugin'
-import { cssVariables, palettes, tokens } from './src/ui/tokens'
+import { themeBaseStyles, tokens } from './src/ui/tokens'
 
 /**
  * Tailwind theme extended from the design-token layer (`src/ui/tokens.ts`) —
@@ -22,13 +22,10 @@ export default {
   },
   plugins: [
     plugin(({ addBase }) => {
-      addBase({
-        // Dark-first; light applies when the OS asks for it.
-        ':root': cssVariables(palettes.dark),
-        '@media (prefers-color-scheme: light)': {
-          ':root': cssVariables(palettes.light),
-        },
-      })
+      // Dark-first per theme; light applies when the OS asks for it. Every
+      // theme is emitted as a `[data-theme]` rule so switching is a runtime
+      // attribute flip — no injected <style>, CSP-safe.
+      addBase(themeBaseStyles())
     }),
   ],
 } satisfies Config

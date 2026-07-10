@@ -80,6 +80,103 @@ export const palettes: Record<'dark' | 'light', Palette> = {
   },
 }
 
+/**
+ * Unlockable themes (Wave 2 cosmetics, P7): each is the base chassis
+ * (surface/ink/shadow) with a swapped accent + timer + XP color, in both
+ * dark and light variants. Derived from level — nothing to store or manage.
+ * `nebula` is the default (level 1); the rest unlock at milestone levels.
+ */
+export interface ThemeMeta {
+  id: string
+  name: string
+  unlockLevel: number
+}
+
+export const THEMES: readonly ThemeMeta[] = [
+  { id: 'nebula', name: 'Nebula', unlockLevel: 1 },
+  { id: 'meadow', name: 'Meadow', unlockLevel: 3 },
+  { id: 'ember', name: 'Ember', unlockLevel: 5 },
+  { id: 'tide', name: 'Tide', unlockLevel: 8 },
+  { id: 'slate', name: 'Slate', unlockLevel: 12 },
+]
+
+export const DEFAULT_THEME = 'nebula'
+
+interface AccentSpec {
+  base: string
+  soft: string
+  strong: string
+  focus: string
+}
+
+/** Build a theme palette: base chassis + swapped accent/xp/focus. */
+function themed(base: Palette, accent: AccentSpec): Palette {
+  return {
+    ...base,
+    accent: { base: accent.base, soft: accent.soft, strong: accent.strong, ink: '#FFFFFF' },
+    xp: accent.base,
+    focus: accent.focus,
+  }
+}
+
+const ACCENTS: Record<string, { dark: AccentSpec; light: AccentSpec }> = {
+  nebula: {
+    dark: { base: '#7C6CF6', soft: '#A99DF9', strong: '#5B48E8', focus: '#38BDF8' },
+    light: { base: '#5B48E8', soft: '#7C6CF6', strong: '#4633CF', focus: '#0273A8' },
+  },
+  meadow: {
+    dark: { base: '#4ADE80', soft: '#86EFAC', strong: '#22A24E', focus: '#38BDF8' },
+    light: { base: '#1A7F42', soft: '#22A24E', strong: '#136235', focus: '#0273A8' },
+  },
+  ember: {
+    dark: { base: '#FB923C', soft: '#FDBA74', strong: '#E4632A', focus: '#F5B84B' },
+    light: { base: '#C2410C', soft: '#E4632A', strong: '#9A3412', focus: '#8A5E00' },
+  },
+  tide: {
+    dark: { base: '#38BDF8', soft: '#7DD3FC', strong: '#0C93D6', focus: '#4ADE80' },
+    light: { base: '#0273A8', soft: '#0C93D6', strong: '#025A83', focus: '#1A7F42' },
+  },
+  slate: {
+    dark: { base: '#94A3B8', soft: '#CBD5E1', strong: '#64748B', focus: '#A99DF9' },
+    light: { base: '#475569', soft: '#64748B', strong: '#334155', focus: '#5B48E8' },
+  },
+}
+
+/** Full dark+light palette pair for each theme. */
+export const themePalettes: Record<string, { dark: Palette; light: Palette }> = Object.fromEntries(
+  THEMES.map((t) => [
+    t.id,
+    {
+      dark: themed(palettes.dark, ACCENTS[t.id].dark),
+      light: themed(palettes.light, ACCENTS[t.id].light),
+    },
+  ]),
+)
+
+/**
+ * Base styles for the Tailwind plugin: the default theme on bare `:root`
+ * (correct first paint before JS), plus a `:root[data-theme="…"]` block per
+ * theme, with all light-mode overrides grouped under one media query so
+ * `prefers-color-scheme` keeps working after a runtime theme switch.
+ */
+/** Recursive CSS-rule shape (selectors → declarations or nested at-rules). */
+export type CssRules = { [key: string]: string | CssRules }
+
+export function themeBaseStyles(): CssRules {
+  const rules: CssRules = {
+    ':root': cssVariables(themePalettes[DEFAULT_THEME].dark),
+  }
+  const lightOverrides: CssRules = {
+    ':root': cssVariables(themePalettes[DEFAULT_THEME].light),
+  }
+  for (const { id } of THEMES) {
+    rules[`:root[data-theme="${id}"]`] = cssVariables(themePalettes[id].dark)
+    lightOverrides[`:root[data-theme="${id}"]`] = cssVariables(themePalettes[id].light)
+  }
+  rules['@media (prefers-color-scheme: light)'] = lightOverrides
+  return rules
+}
+
 /** '#7C6CF6' → '124 108 246' (rgb triplet, so Tailwind alpha modifiers work). */
 export function hexToRgbTriplet(hex: string): string {
   const value = hex.replace('#', '')
