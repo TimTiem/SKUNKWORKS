@@ -54,7 +54,7 @@ export function TaskList() {
 
 function DeferredItem({ task }: { task: TaskRow }) {
   return (
-    <li className="flex items-center gap-2 rounded-card bg-surface-raised/60 px-3 py-1 shadow-card">
+    <li className="motion-enter flex items-center gap-2 rounded-card bg-surface-raised/60 px-3 py-1 shadow-card">
       <span className="min-w-0 flex-1 break-words py-2 text-ink-muted">{task.text}</span>
       <button
         type="button"

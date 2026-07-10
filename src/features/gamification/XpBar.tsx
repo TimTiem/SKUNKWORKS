@@ -77,7 +77,7 @@ export function XpBar() {
           key={pop.seq}
           role="status"
           className={`celebrate-pop absolute -top-3 right-3 rounded-pill px-3 py-1 text-sm font-semibold shadow-pop ${
-            pop.level ? 'bg-accent-base text-ink-strong' : 'bg-surface-overlay text-accent-soft'
+            pop.level ? 'bg-accent-strong text-accent-ink' : 'bg-surface-overlay text-accent-soft'
           }`}
         >
           {pop.text}

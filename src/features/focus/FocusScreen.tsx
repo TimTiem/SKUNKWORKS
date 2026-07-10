@@ -9,6 +9,7 @@ import {
   type ActiveFocus,
 } from '../../domain/focus'
 import type { TaskRow } from '../../types/rows'
+import { Button } from '../../ui/primitives/Button'
 import { FocusRing } from './FocusRing'
 import { completeFocus, endFocus, setFocusDuration } from './focusActions'
 
@@ -74,21 +75,11 @@ export function FocusScreen({ focus, task }: { focus: ActiveFocus; task: TaskRow
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         {completable && task && (
-          <button
-            type="button"
-            onClick={() => void completeFocus(focus, task)}
-            className="rounded-control bg-accent-base px-4 py-3 font-medium text-ink-strong transition-colors duration-enter ease-standard hover:bg-accent-strong"
-          >
-            Done — complete task
-          </button>
+          <Button onClick={() => void completeFocus(focus, task)}>Done — complete task</Button>
         )}
-        <button
-          type="button"
-          onClick={() => void endFocus(focus)}
-          className="rounded-control px-4 py-2 text-sm text-ink-muted underline-offset-2 hover:underline"
-        >
+        <Button variant="quiet" onClick={() => void endFocus(focus)}>
           End focus
-        </button>
+        </Button>
       </div>
     </main>
   )

@@ -1,13 +1,15 @@
 import type { Config } from 'tailwindcss'
-import { tokens } from './src/ui/tokens'
+import plugin from 'tailwindcss/plugin'
+import { cssVariables, palettes, tokens } from './src/ui/tokens'
 
 /**
- * Tailwind theme is extended from the design-token layer (`src/ui/tokens.ts`)
- * so the token module stays the single source of style truth (SETUP.md §3).
+ * Tailwind theme extended from the design-token layer (`src/ui/tokens.ts`) —
+ * the token module stays the single source of style truth (SETUP.md §3).
+ * Colors resolve through CSS variables injected below, so the light theme
+ * (and Wave 2's unlockable themes) swap palettes without touching components.
  */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: tokens.colors,
@@ -18,5 +20,15 @@ export default {
       transitionTimingFunction: tokens.motion.easings,
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addBase }) => {
+      addBase({
+        // Dark-first; light applies when the OS asks for it.
+        ':root': cssVariables(palettes.dark),
+        '@media (prefers-color-scheme: light)': {
+          ':root': cssVariables(palettes.light),
+        },
+      })
+    }),
+  ],
 } satisfies Config

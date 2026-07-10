@@ -38,7 +38,7 @@ export function CaptureBar() {
       <button
         type="submit"
         aria-label="Add task"
-        className="grid size-12 shrink-0 place-items-center rounded-control bg-accent-base text-2xl font-medium text-ink-strong transition-colors duration-enter ease-standard hover:bg-accent-strong"
+        className="grid size-12 shrink-0 place-items-center rounded-control bg-accent-strong text-2xl font-medium text-accent-ink transition-colors duration-enter ease-standard hover:bg-accent-base"
       >
         +
       </button>

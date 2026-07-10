@@ -9,7 +9,7 @@ import { completeTask, deferTask, softDeleteTask } from './taskActions'
  */
 export function TaskItem({ task }: { task: TaskRow }) {
   return (
-    <li className="flex items-center gap-1 rounded-card bg-surface-raised py-1 pl-1 pr-2 shadow-card">
+    <li className="motion-enter flex items-center gap-1 rounded-card bg-surface-raised py-1 pl-1 pr-2 shadow-card">
       <button
         type="button"
         aria-label={`Complete "${task.text}"`}

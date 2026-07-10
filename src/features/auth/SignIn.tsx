@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../../sync/supabase'
+import { Button } from '../../ui/primitives/Button'
 
 type Mode = 'signIn' | 'signUp'
 
@@ -73,23 +74,18 @@ export function SignIn() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-control bg-surface-overlay px-4 py-3 text-ink-strong placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-base"
           />
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-control bg-accent-base px-4 py-3 font-medium text-ink-strong transition-colors duration-enter ease-standard hover:bg-accent-strong disabled:opacity-60"
-          >
+          <Button type="submit" disabled={busy}>
             {busy ? 'One moment…' : signingIn ? 'Sign in' : 'Create account'}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="quiet"
             onClick={() => {
               setMode(signingIn ? 'signUp' : 'signIn')
               setError(null)
             }}
-            className="text-sm text-ink-muted underline-offset-2 hover:underline"
           >
             {signingIn ? 'First time here? Create your account' : 'Already set up? Sign in'}
-          </button>
+          </Button>
         </form>
 
         {error && (
