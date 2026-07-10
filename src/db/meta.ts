@@ -6,6 +6,8 @@ export const META_KEYS = {
   appVersion: 'app_version',
   lastSynced: 'last_synced',
   endowedApplied: 'endowed_applied',
+  /** Device-local in-progress focus session (survives reload/lock). */
+  activeFocus: 'active_focus',
 } as const
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {

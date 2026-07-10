@@ -1,9 +1,11 @@
+import { startFocus } from '../focus/focusActions'
 import type { TaskRow } from '../../types/rows'
 import { completeTask, deferTask, softDeleteTask } from './taskActions'
 
 /**
- * One open task: complete in a single tap (FR-08); defer and delete are
- * quiet, neutral affordances — no red, no alarm (P8). Targets are ≥44px.
+ * One open task: complete in a single tap (FR-08), enter Focus Now in a
+ * single tap (FR-13); defer and delete are quiet, neutral affordances — no
+ * red, no alarm (P8). Targets are ≥44px.
  */
 export function TaskItem({ task }: { task: TaskRow }) {
   return (
@@ -27,6 +29,17 @@ export function TaskItem({ task }: { task: TaskRow }) {
 
       <span className="min-w-0 flex-1 break-words py-2 text-ink-strong">{task.text}</span>
 
+      <button
+        type="button"
+        aria-label={`Focus on "${task.text}"`}
+        title="Focus Now"
+        onClick={() => void startFocus(task)}
+        className="grid size-11 shrink-0 place-items-center text-focus transition-colors duration-enter ease-standard hover:text-accent-soft"
+      >
+        <svg viewBox="0 0 16 16" className="size-4 fill-current" aria-hidden="true">
+          <path d="M5 3.5v9l7.5-4.5z" />
+        </svg>
+      </button>
       <button
         type="button"
         aria-label={`Defer "${task.text}"`}

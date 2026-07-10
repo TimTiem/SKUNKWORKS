@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { titleForLevel } from '../../domain/levels'
 import { useStats } from './useStats'
+import { getLastSeenXp, setLastSeenXp } from './xpMemory'
 
 /**
  * Always-visible progress header: level + title (competence cue), the XP bar
@@ -11,24 +12,22 @@ import { useStats } from './useStats'
 export function XpBar() {
   const stats = useStats()
   const [pop, setPop] = useState<{ text: string; level: boolean; seq: number } | null>(null)
-  const prev = useRef<{ xp: number; level: number } | null>(null)
 
   const xp = stats?.totalXp
   const level = stats?.level
   useEffect(() => {
     if (xp === undefined || level === undefined) return
-    const before = prev.current
-    prev.current = { xp, level }
+    const before = getLastSeenXp()
+    setLastSeenXp({ xp, level })
     if (!before) return
-    if (level > before.level) {
-      setPop((p) => ({
-        text: `Level ${level} — ${titleForLevel(level)}!`,
-        level: true,
-        seq: (p?.seq ?? 0) + 1,
-      }))
-    } else if (xp > before.xp) {
-      setPop((p) => ({ text: `+${xp - before.xp} XP`, level: false, seq: (p?.seq ?? 0) + 1 }))
-    }
+    const next =
+      level > before.level
+        ? { text: `Level ${level} — ${titleForLevel(level)}!`, level: true }
+        : xp > before.xp
+          ? { text: `+${xp - before.xp} XP`, level: false }
+          : null
+    if (!next) return
+    setPop((p) => ({ ...next, seq: (p?.seq ?? 0) + 1 }))
   }, [xp, level])
 
   useEffect(() => {

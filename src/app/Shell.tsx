@@ -1,19 +1,26 @@
 import { useEffect } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { CaptureBar } from '../features/capture/CaptureBar'
+import { FocusScreen } from '../features/focus/FocusScreen'
+import { useActiveFocus } from '../features/focus/useActiveFocus'
 import { XpBar } from '../features/gamification/XpBar'
 import { TaskList } from '../features/tasks/TaskList'
 import { supabase } from '../sync/supabase'
 import { startSyncTriggers } from '../sync/sync'
 
 /**
- * Signed-in layout: capture on top, the list right under it. Gamification
- * header (XP bar) lands in slice 5; sign-out lives here quietly until
+ * Signed-in layout: capture on top, the list right under it; an in-progress
+ * focus session takes over the whole screen (single-task mode, P3) and is
+ * restored after any reload or relaunch. Sign-out lives here quietly until
  * Settings (V1).
  */
 export function Shell({ session }: { session: Session }) {
   // Sync on open/foreground/online — mounted only while signed in.
   useEffect(() => startSyncTriggers(), [])
+
+  const { focus, task, loading } = useActiveFocus()
+  if (loading) return null
+  if (focus) return <FocusScreen focus={focus} task={task} />
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
