@@ -1,15 +1,15 @@
+import { Shell } from './app/Shell'
+import { SignIn } from './features/auth/SignIn'
+import { useSession } from './features/auth/useSession'
+
 function App() {
-  return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-3 p-6">
-      <h1 className="text-4xl font-bold tracking-tight text-ink-strong">
-        SKUNKWORKS
-      </h1>
-      <p className="text-ink-muted">Start small. Win now.</p>
-      <p className="rounded-pill bg-surface-raised px-4 py-1.5 text-sm text-accent-soft shadow-card">
-        Scaffold ready — Wave 1 in progress
-      </p>
-    </main>
-  )
+  const { session, loading } = useSession()
+
+  // Session state resolves from local storage in a few ms (no network), so a
+  // blank frame here never lasts long enough to see — and never spins (P8).
+  if (loading) return null
+
+  return session ? <Shell session={session} /> : <SignIn />
 }
 
 export default App
