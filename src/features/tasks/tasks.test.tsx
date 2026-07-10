@@ -28,7 +28,7 @@ function capture(text: string) {
 
 describe('tasks slice', () => {
   beforeEach(async () => {
-    await db.tasks.clear()
+    await Promise.all(db.tables.map((t) => t.clear()))
   })
 
   it('captures a task and shows it instantly, clearing the input', async () => {

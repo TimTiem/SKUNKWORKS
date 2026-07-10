@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { CaptureBar } from '../features/capture/CaptureBar'
+import { XpBar } from '../features/gamification/XpBar'
 import { TaskList } from '../features/tasks/TaskList'
 import { supabase } from '../sync/supabase'
 import { startSyncTriggers } from '../sync/sync'
@@ -19,6 +20,7 @@ export function Shell({ session }: { session: Session }) {
       <header className="flex items-center justify-between pt-1">
         <h1 className="text-lg font-bold tracking-tight text-ink-strong">SKUNKWORKS</h1>
       </header>
+      <XpBar />
       <CaptureBar />
       <main className="flex-1">
         <TaskList />

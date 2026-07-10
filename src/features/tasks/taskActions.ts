@@ -1,4 +1,5 @@
 import { db } from '../../db/db'
+import { buildCoinEarn, buildCompletion } from '../../domain/completions'
 import { newTask, withSoftDelete, withStatus } from '../../domain/tasks'
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
@@ -17,8 +18,21 @@ export async function addTask(text: string): Promise<void> {
   requestSync()
 }
 
+/**
+ * Complete = one local transaction: the status flip plus the two append-only
+ * reward events (Decision 1 — never `xp = xp + n`; the log IS the truth).
+ * Everything renders from local state well under 100 ms (P1).
+ */
 export async function completeTask(task: TaskRow): Promise<void> {
-  await db.tasks.put(withStatus(task, 'done', nowISO()))
+  const now = nowISO()
+  const completion = buildCompletion({ id: newId(), taskId: task.id, nowIso: now })
+  const coinEarn = buildCoinEarn(completion, newId())
+  await db.transaction('rw', [db.tasks, db.completions, db.coin_ledger], async () => {
+    await db.tasks.put(withStatus(task, 'done', now))
+    await db.completions.add(completion)
+    await db.coin_ledger.add(coinEarn)
+  })
+  navigator.vibrate?.(15) // haptic where the platform has it (P1)
   requestSync()
 }
 
