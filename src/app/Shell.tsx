@@ -4,6 +4,7 @@ import { CaptureBar } from '../features/capture/CaptureBar'
 import { FocusScreen } from '../features/focus/FocusScreen'
 import { useActiveFocus } from '../features/focus/useActiveFocus'
 import { FactRevealProvider } from '../features/facts/useFactReveal'
+import { MatrixScreen } from '../features/matrix/MatrixScreen'
 import { ThemePicker } from '../features/gamification/ThemePicker'
 import { XpBar } from '../features/gamification/XpBar'
 import { useStats } from '../features/gamification/useStats'
@@ -15,6 +16,7 @@ import { startSyncTriggers } from '../sync/sync'
 
 const VIEWS = [
   { id: 'tasks', label: 'Tasks' },
+  { id: 'matrix', label: 'Matrix' },
   { id: 'rewards', label: 'Rewards' },
   { id: 'themes', label: 'Themes' },
 ] as const
@@ -77,6 +79,7 @@ export function Shell({ session }: { session: Session }) {
         {view === 'tasks' && <CaptureBar />}
         <main className="flex-1">
           {view === 'tasks' && <TaskList />}
+          {view === 'matrix' && <MatrixScreen />}
           {view === 'rewards' && <RewardsScreen />}
           {view === 'themes' && <ThemePicker />}
         </main>
