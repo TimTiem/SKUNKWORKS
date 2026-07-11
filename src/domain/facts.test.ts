@@ -18,10 +18,10 @@ describe('facts content integrity', () => {
     }
   })
 
-  it('ships a healthy pool across all five categories', () => {
-    expect(FACTS.length).toBeGreaterThanOrEqual(60)
+  it('ships 100 verified facts in each of the five categories (500 total)', () => {
+    expect(FACTS.length).toBe(500)
     for (const category of CATEGORIES) {
-      expect(FACTS.filter((f) => f.category === category).length).toBeGreaterThanOrEqual(10)
+      expect(FACTS.filter((f) => f.category === category).length).toBe(100)
     }
   })
 })
@@ -30,22 +30,14 @@ const fact = (id: string): Fact => ({ id, category: 'biology', text: `x`.repeat(
 const POOL = [fact('a'), fact('b'), fact('c')]
 
 describe('chooseFactReveal', () => {
-  it('reveals nothing when the surprise roll misses', () => {
-    // First rng() is the reveal gate; a value ≥ chance means "no fact".
-    expect(chooseFactReveal(new Set(), () => 0.99, POOL)).toBeNull()
-  })
-
-  it('reveals an unseen fact when the roll hits', () => {
-    const rolls = [0, 0] // hit, then pick index 0
-    const rng = () => rolls.shift() ?? 0
-    expect(chooseFactReveal(new Set(), rng, POOL)?.id).toBe('a')
+  it('reveals a random unseen fact on every completion (v1.1)', () => {
+    expect(chooseFactReveal(new Set(), () => 0, POOL)?.id).toBe('a')
+    expect(chooseFactReveal(new Set(), () => 0.999, POOL)?.id).toBe('c')
   })
 
   it('never reveals a fact already seen', () => {
-    const rolls = [0, 0]
-    const rng = () => rolls.shift() ?? 0
     const seen = new Set(['a'])
-    expect(chooseFactReveal(seen, rng, POOL)?.id).toBe('b')
+    expect(chooseFactReveal(seen, () => 0, POOL)?.id).toBe('b')
   })
 
   it('stops gracefully when the pool is exhausted (never re-shows)', () => {
@@ -53,8 +45,8 @@ describe('chooseFactReveal', () => {
     expect(chooseFactReveal(seen, () => 0, POOL)).toBeNull()
   })
 
-  it('reveal chance is the documented ~1-in-6', () => {
-    expect(FACT_REVEAL_CHANCE).toBeCloseTo(1 / 6, 5)
+  it('reveals on every completion now, not a fraction of them', () => {
+    expect(FACT_REVEAL_CHANCE).toBe(1)
   })
 })
 

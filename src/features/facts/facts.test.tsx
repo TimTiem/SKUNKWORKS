@@ -1,9 +1,18 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { FACTS } from '../../content/facts/facts'
 import { db } from '../../db/db'
+import { buildFactUnlock } from '../../domain/facts'
+import { nowISO } from '../../lib/time'
+import { newId } from '../../lib/uuid'
 import { rollForFact } from './factReveal'
 
 vi.mock('../../sync/sync', () => ({ requestSync: vi.fn() }))
+
+/** Mark the whole library seen — the only way to exhaust the pool now. */
+async function unlockEverything() {
+  await db.fact_unlocks.bulkAdd(FACTS.map((f) => buildFactUnlock(f, newId(), nowISO())))
+}
 
 describe('rollForFact', () => {
   beforeEach(async () => {
@@ -11,24 +20,24 @@ describe('rollForFact', () => {
   })
   afterEach(() => vi.restoreAllMocks())
 
-  it('records an unlock on a hit and returns the fact', async () => {
-    const fact = await rollForFact(makeRng([0, 0]))
+  it('records an unlock and returns the fact on every completion (v1.1)', async () => {
+    const fact = await rollForFact(makeRng([0]))
     expect(fact).not.toBeNull()
     expect(await db.fact_unlocks.count()).toBe(1)
     expect((await db.fact_unlocks.toArray())[0].fact_id).toBe(fact!.id)
   })
 
-  it('records nothing on a miss', async () => {
-    expect(await rollForFact(makeRng([0.99]))).toBeNull()
-    expect(await db.fact_unlocks.count()).toBe(0)
+  it('records nothing once every fact has been seen (graceful stop)', async () => {
+    await unlockEverything()
+    expect(await rollForFact(makeRng([0]))).toBeNull()
+    expect(await db.fact_unlocks.count()).toBe(FACTS.length) // no new row
   })
 
   it('never re-unlocks the same fact (de-dup across the seen set)', async () => {
-    // Reveal one fact, then force the pool to try that same fact again.
-    const first = await rollForFact(makeRng([0, 0]))
-    // Re-rolling with pick index 0 would land on the first unseen fact, which
-    // is now a *different* fact, so we should still only ever store uniques.
-    await rollForFact(makeRng([0, 0]))
+    const first = await rollForFact(makeRng([0]))
+    // Re-rolling with pick index 0 lands on the first *remaining* unseen fact,
+    // so stored unlocks stay unique.
+    await rollForFact(makeRng([0]))
     const stored = await db.fact_unlocks.toArray()
     expect(new Set(stored.map((f) => f.fact_id)).size).toBe(stored.length)
     expect(stored.some((f) => f.fact_id === first!.id)).toBe(true)
@@ -54,8 +63,8 @@ describe('fact reveal surface', () => {
   })
   afterEach(() => vi.restoreAllMocks())
 
-  it('shows a fact card on a hit', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0) // always hit, pick index 0
+  it('shows a fact card on completion', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0) // pick index 0
     render(
       <FactRevealProvider>
         <Trigger />
@@ -65,15 +74,17 @@ describe('fact reveal surface', () => {
     expect(await screen.findByText(/unlocked/i)).toBeInTheDocument()
   })
 
-  it('shows nothing on a miss', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.99) // always miss
+  it('shows nothing once the pool is exhausted', async () => {
+    await unlockEverything()
     render(
       <FactRevealProvider>
         <Trigger />
       </FactRevealProvider>,
     )
     fireEvent.click(screen.getByRole('button', { name: /complete/i }))
-    await waitFor(() => expect(db.fact_unlocks.count()).resolves.toBe(0))
+    await waitFor(() =>
+      expect(db.fact_unlocks.count()).resolves.toBe(FACTS.length),
+    )
     expect(screen.queryByText(/unlocked/i)).not.toBeInTheDocument()
   })
 })
