@@ -21,6 +21,25 @@ export interface Migration {
 export const migrations: Migration[] = [
   // Version 1 is the baseline: stores are created by Dexie, no data to move.
   { version: 1, name: 'baseline', run: async () => {} },
+  {
+    version: 2,
+    name: 'task-planning-defaults',
+    // Backfill v1.1 planning fields on pre-existing rows (idempotent: only
+    // touches rows that are missing a field).
+    run: async () => {
+      const rows = await db.tasks.toArray()
+      for (const row of rows) {
+        if (row.importance !== undefined && row.urgency !== undefined) continue
+        await db.tasks.put({
+          ...row,
+          due_at: row.due_at ?? null,
+          parent_id: row.parent_id ?? null,
+          importance: row.importance ?? 50,
+          urgency: row.urgency ?? 50,
+        })
+      }
+    },
+  },
 ]
 
 /** Pure: validate the migration list and return the ones newer than `current`. */

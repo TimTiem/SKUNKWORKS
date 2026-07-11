@@ -7,6 +7,7 @@ import type {
   MetaRow,
   RedemptionRow,
   RewardRow,
+  TaskLinkRow,
   TaskRow,
 } from '../types/rows'
 
@@ -20,6 +21,7 @@ import type {
  */
 export class SkunkworksDB extends Dexie {
   tasks!: Table<TaskRow, string>
+  task_links!: Table<TaskLinkRow, string>
   rewards!: Table<RewardRow, string>
   completions!: Table<CompletionRow, string>
   focus_sessions!: Table<FocusSessionRow, string>
@@ -39,6 +41,13 @@ export class SkunkworksDB extends Dexie {
       redemptions: 'id, at, updated_at, dirty',
       fact_unlocks: 'id, fact_id, updated_at, dirty',
       meta: 'key',
+    })
+    // v1.1 (mirrors supabase/migrations/0002): task planning fields + links.
+    // The matching DATA migration (backfilling defaults on old rows) runs in
+    // src/db/migrations before first render.
+    this.version(2).stores({
+      tasks: 'id, status, updated_at, dirty, parent_id',
+      task_links: 'id, updated_at, dirty, blocked_id, blocker_id',
     })
   }
 }

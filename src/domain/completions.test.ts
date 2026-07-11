@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildCoinEarn, buildCompletion } from './completions'
-import { totalXp } from './xp'
+import { completionRewards, totalXp } from './xp'
 
 const T0 = '2026-07-10T10:00:00.000Z'
 
@@ -43,5 +43,30 @@ describe('totalXp', () => {
   it('starts at the endowed 25 and only ever sums upward (P4/P6)', () => {
     expect(totalXp([])).toBe(25)
     expect(totalXp([{ xp_awarded: 10 }, { xp_awarded: 15 }])).toBe(50)
+  })
+})
+
+describe('completionRewards (v1.1 — XP from matrix position)', () => {
+  it('pays exactly the classic +10/+5 at the matrix centre', () => {
+    expect(completionRewards(50, 50, false)).toEqual({ xp: 10, coins: 5 })
+  })
+
+  it('keeps the focus bonus at the centre (+15/+7)', () => {
+    expect(completionRewards(50, 50, true)).toEqual({ xp: 15, coins: 7 })
+  })
+
+  it('spans 4..16 XP across the matrix, never zero (P8 floor)', () => {
+    expect(completionRewards(0, 0, false).xp).toBe(4)
+    expect(completionRewards(100, 100, false).xp).toBe(16)
+  })
+
+  it('weights importance over urgency (0.6 vs 0.4)', () => {
+    expect(completionRewards(100, 0, false).xp).toBe(11) // 4 + round(7.2)
+    expect(completionRewards(0, 100, false).xp).toBe(9) // 4 + round(4.8)
+  })
+
+  it('coins stay flat regardless of position (pricing stays predictable)', () => {
+    expect(completionRewards(0, 0, false).coins).toBe(5)
+    expect(completionRewards(100, 100, false).coins).toBe(5)
   })
 })

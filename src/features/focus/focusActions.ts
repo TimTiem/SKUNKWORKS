@@ -6,6 +6,7 @@ import { withStatus } from '../../domain/tasks'
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
 import { requestSync } from '../../sync/sync'
+import { matrixRewards } from '../tasks/taskActions'
 import type { TaskRow } from '../../types/rows'
 
 /** One tap in (FR-13): default duration, zero required config (P2). */
@@ -32,11 +33,14 @@ export async function setFocusDuration(focus: ActiveFocus, plannedMs: number): P
 export async function completeFocus(focus: ActiveFocus, task: TaskRow): Promise<void> {
   const now = nowISO()
   const session = buildFocusSession(focus, now)
+  const rewards = await matrixRewards(task, true) // matrix XP + focus bonus (v1.1)
   const completion = buildCompletion({
     id: newId(),
     taskId: task.id,
     nowIso: now,
     focusSessionId: session.id,
+    xpAwarded: rewards.xp,
+    coinsAwarded: rewards.coins,
   })
   const coinEarn = buildCoinEarn(completion, newId())
   await db.transaction(

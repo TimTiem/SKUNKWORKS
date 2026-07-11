@@ -10,7 +10,7 @@ import { useTasks } from './useTasks'
  * quiet disclosure — present, reachable, never nagging.
  */
 export function TaskList() {
-  const { open, deferred, loading } = useTasks()
+  const { open, deferred, loading, ...maps } = useTasks()
   const [showDeferred, setShowDeferred] = useState(false)
 
   if (loading) return null
@@ -24,7 +24,7 @@ export function TaskList() {
       ) : (
         <ul className="flex flex-col gap-2">
           {open.map((task) => (
-            <TaskItem key={task.id} task={task} />
+            <TaskItem key={task.id} task={task} tree={maps} />
           ))}
         </ul>
       )}

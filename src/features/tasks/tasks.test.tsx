@@ -93,4 +93,76 @@ describe('tasks slice', () => {
     render(<TasksScreen />)
     expect(await screen.findByText(/nothing on your plate/i)).toBeInTheDocument()
   })
+
+  // ── v1.1 planning ──────────────────────────────────────────────────────────
+
+  it('sets a deadline from the detail panel and shows a quiet due chip', async () => {
+    render(<TasksScreen />)
+    capture('File taxes')
+    fireEvent.click(await screen.findByRole('button', { name: /details for "file taxes"/i }))
+
+    const inFiveDays = new Date(Date.now() + 5 * 86_400_000)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const value = `${inFiveDays.getFullYear()}-${pad(inFiveDays.getMonth() + 1)}-${pad(inFiveDays.getDate())}`
+    fireEvent.change(screen.getByLabelText(/deadline/i), { target: { value } })
+
+    expect(await screen.findByText(/due in 5d/i)).toBeInTheDocument()
+    const [row] = await db.tasks.toArray()
+    expect(row.due_at).not.toBeNull()
+    expect(row.dirty).toBe(1)
+  })
+
+  it('adds a subtask nested under its parent', async () => {
+    render(<TasksScreen />)
+    capture('Big project')
+    fireEvent.click(await screen.findByRole('button', { name: /details for "big project"/i }))
+
+    fireEvent.change(screen.getByLabelText(/add a subtask/i), { target: { value: 'First step' } })
+    fireEvent.click(screen.getByRole('button', { name: /add subtask/i }))
+
+    expect(await screen.findByRole('button', { name: /complete "first step"/i })).toBeInTheDocument()
+    expect(await screen.findByText('1 step')).toBeInTheDocument()
+    const rows = await db.tasks.toArray()
+    const parent = rows.find((r) => r.text === 'Big project')!
+    const child = rows.find((r) => r.text === 'First step')!
+    expect(child.parent_id).toBe(parent.id)
+    expect(child.status).toBe('open')
+  })
+
+  it('adds a dependency and quietly refuses the reverse link (cycle)', async () => {
+    render(<TasksScreen />)
+    capture('Paint wall')
+    capture('Buy paint')
+    await screen.findByText('Buy paint')
+    const buyPaint = (await db.tasks.toArray()).find((t) => t.text === 'Buy paint')!
+    const paintWall = (await db.tasks.toArray()).find((t) => t.text === 'Paint wall')!
+
+    // "Paint wall" waits for "Buy paint".
+    fireEvent.click(await screen.findByRole('button', { name: /details for "paint wall"/i }))
+    fireEvent.change(screen.getByLabelText(/waits for/i), { target: { value: buyPaint.id } })
+    expect(await screen.findByText(/after: buy paint/i)).toBeInTheDocument()
+    await waitFor(async () => expect(await db.task_links.count()).toBe(1))
+
+    // The reverse would be a loop — refused with a quiet note, nothing stored.
+    fireEvent.click(screen.getByRole('button', { name: /details for "paint wall"/i })) // collapse
+    fireEvent.click(await screen.findByRole('button', { name: /details for "buy paint"/i }))
+    fireEvent.change(screen.getByLabelText(/waits for/i), { target: { value: paintWall.id } })
+    expect(await screen.findByText(/wait on each other/i)).toBeInTheDocument()
+    expect(await db.task_links.count()).toBe(1)
+  })
+
+  it('pays XP by matrix position at completion time', async () => {
+    render(<TasksScreen />)
+    capture('Critical thing')
+    await screen.findByText('Critical thing')
+    const [row] = await db.tasks.toArray()
+    await db.tasks.put({ ...row, importance: 100, urgency: 100 })
+
+    fireEvent.click(await screen.findByRole('button', { name: /complete "critical thing"/i }))
+
+    await waitFor(async () => expect(await db.completions.count()).toBe(1))
+    const [completion] = await db.completions.toArray()
+    expect(completion.xp_awarded).toBe(16) // top-right corner of the matrix
+    expect(completion.coins_awarded).toBe(5) // coins stay flat
+  })
 })

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TIER_DEFAULTS } from '../../domain/rewards'
 import { Button } from '../../ui/primitives/Button'
 import { celebrationClass } from '../../ui/motion/celebrate'
@@ -73,7 +73,7 @@ export function RewardsScreen() {
 /** "You earned this" — the whole framing, celebratory and brief (P8).
  *  The variant rotates per redemption so it doesn't go stale. */
 function RedeemCelebration({ name, onDone }: { name: string; onDone: () => void }) {
-  const variant = useRef(celebrationClass(Math.floor(Date.now() / 1000))).current
+  const [variant] = useState(() => celebrationClass(Math.floor(Date.now() / 1000)))
   useEffect(() => {
     const timer = setTimeout(onDone, 3200)
     return () => clearTimeout(timer)

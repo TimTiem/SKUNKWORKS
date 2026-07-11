@@ -12,6 +12,10 @@ export function buildCompletion(args: {
   taskId: string | null
   nowIso: string
   focusSessionId?: string | null
+  /** v1.1: matrix-computed values (domain/xp completionRewards). Defaults
+   * keep the classic flat numbers for callers without a matrix position. */
+  xpAwarded?: number
+  coinsAwarded?: number
 }): CompletionRow {
   const fromFocus = args.focusSessionId != null
   return {
@@ -19,9 +23,9 @@ export function buildCompletion(args: {
     user_id: null,
     task_id: args.taskId,
     completed_at: args.nowIso,
-    xp_awarded: fromFocus ? XP_TASK + XP_FOCUS_BONUS : XP_TASK,
-    coins_awarded: fromFocus ? COINS_TASK + COINS_FOCUS_BONUS : COINS_TASK,
-    multiplier: 1, // surprise crit is v1.1 — parked
+    xp_awarded: args.xpAwarded ?? (fromFocus ? XP_TASK + XP_FOCUS_BONUS : XP_TASK),
+    coins_awarded: args.coinsAwarded ?? (fromFocus ? COINS_TASK + COINS_FOCUS_BONUS : COINS_TASK),
+    multiplier: 1,
     focus_session_id: args.focusSessionId ?? null,
     created_at: args.nowIso,
     updated_at: args.nowIso,

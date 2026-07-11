@@ -35,6 +35,22 @@ export interface TaskRow extends SyncableRow {
   tag: string | null
   estimate_ms: number | null
   status: TaskStatus
+  /** Optional deadline (v1.1). Presented quietly — never a shame surface (P8). */
+  due_at: string | null
+  /** Subtask → parent task id (v1.1). */
+  parent_id: string | null
+  /** Eisenhower y-axis, 0..100 (v1.1). */
+  importance: number
+  /** Eisenhower x-axis base, 0..100; EFFECTIVE urgency is derived at read
+   * time from this + deadline + dependents/subtasks (v1.1). */
+  urgency: number
+}
+
+/** Dependency: `blocked_id` waits for `blocker_id` (v1.1). One LWW row per
+ * link so multi-device edits merge per-link. Advisory, never a hard block. */
+export interface TaskLinkRow extends SyncableRow {
+  blocked_id: string
+  blocker_id: string
 }
 
 export interface RewardRow extends SyncableRow {
