@@ -1,5 +1,6 @@
 import { db } from '../db'
 import { getMeta, setMeta, META_KEYS } from '../meta'
+import { SEED_REWARDS } from './seedRewards'
 
 /**
  * Local data-migration runner (SETUP.md §5): forward-only, ordered,
@@ -37,6 +38,19 @@ export const migrations: Migration[] = [
           importance: row.importance ?? 50,
           urgency: row.urgency ?? 50,
         })
+      }
+    },
+  },
+  {
+    version: 3,
+    name: 'seed-reward-tiers',
+    // Deterministic self-seed of Tim's reward list (see seedRewards.ts):
+    // every device builds identical rows, so nothing needs to sync and a
+    // late-seeding device can't clobber edits. Idempotent: an id that
+    // already exists locally (seeded, or its synced descendant) is skipped.
+    run: async () => {
+      for (const reward of SEED_REWARDS) {
+        if (!(await db.rewards.get(reward.id))) await db.rewards.add(reward)
       }
     },
   },
