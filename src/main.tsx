@@ -3,7 +3,11 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './pwa.ts'
 import { runMigrations } from './db/migrations'
+import { captureInstallPrompt } from './features/install/installPrompt'
 import App from './App.tsx'
+
+// beforeinstallprompt fires once, early — capture it before anything renders.
+captureInstallPrompt()
 
 const root = document.getElementById('root')!
 

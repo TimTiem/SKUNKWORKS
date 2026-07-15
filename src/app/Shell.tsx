@@ -3,7 +3,9 @@ import type { Session } from '@supabase/supabase-js'
 import { CaptureBar } from '../features/capture/CaptureBar'
 import { FocusScreen } from '../features/focus/FocusScreen'
 import { useActiveFocus } from '../features/focus/useActiveFocus'
+import { ExportButton } from '../features/export/ExportButton'
 import { FactRevealProvider } from '../features/facts/useFactReveal'
+import { InstallHint } from '../features/install/InstallHint'
 import { MatrixScreen } from '../features/matrix/MatrixScreen'
 import { ThemePicker } from '../features/gamification/ThemePicker'
 import { XpBar } from '../features/gamification/XpBar'
@@ -83,8 +85,10 @@ export function Shell({ session }: { session: Session }) {
           {view === 'rewards' && <RewardsScreen />}
           {view === 'themes' && <ThemePicker />}
         </main>
+        <InstallHint />
         <footer className="flex items-center justify-center gap-3 p-2 text-xs text-ink-muted">
           <span>Signed in as {session.user.email}</span>
+          <ExportButton />
           <button
             type="button"
             onClick={() => void supabase.auth.signOut()}
