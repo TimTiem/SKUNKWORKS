@@ -43,7 +43,7 @@ describe('rewards store', () => {
   })
 
   it('redeems when covered: both events logged, balance drops, XP untouched (P4)', async () => {
-    await seedEarnings(12) // 60 coins, 120 XP worth of completions
+    await seedEarnings(5) // 60 coins, 125 XP worth of completions
     render(<RewardsScreen />)
     await addRewardViaForm('Ice cream') // small, 50
 
@@ -57,20 +57,20 @@ describe('rewards store', () => {
     const ledger = await db.coin_ledger.toArray()
     expect(ledger.reduce((s, e) => s + e.delta, 0)).toBe(10) // 60 earned − 50 spent
     // The redemption spent coins ONLY — the completions log (XP) is untouched.
-    expect(await db.completions.count()).toBe(12)
+    expect(await db.completions.count()).toBe(5)
   })
 
   it('shows how close an unaffordable reward is — no locked shame state (P6/P8)', async () => {
-    await seedEarnings(6) // 30 coins
+    await seedEarnings(2) // 24 coins
     render(<RewardsScreen />)
     await addRewardViaForm('Ice cream') // 50
 
-    expect(await screen.findByText(/20 more to go/i)).toBeInTheDocument()
+    expect(await screen.findByText(/26 more to go/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^redeem$/i })).not.toBeInTheDocument()
   })
 
   it('a double redeem cannot spend the same coins twice', async () => {
-    await seedEarnings(10) // 50 coins — covers exactly one redemption
+    await seedEarnings(5) // 60 coins — covers only one 50-coin redemption
     const reward = (await import('../../domain/rewards')).newReward(
       { name: 'Ice cream', tier: 'small', coinCost: 50 },
       'r-1',
@@ -82,7 +82,7 @@ describe('rewards store', () => {
 
     expect(results.filter(Boolean)).toHaveLength(1)
     expect(await db.redemptions.count()).toBe(1)
-    expect((await db.coin_ledger.toArray()).reduce((s, e) => s + e.delta, 0)).toBe(0)
+    expect((await db.coin_ledger.toArray()).reduce((s, e) => s + e.delta, 0)).toBe(10)
   })
 
   it('edits update the row for sync; deletes are soft', async () => {

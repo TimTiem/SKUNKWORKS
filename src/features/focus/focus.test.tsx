@@ -47,7 +47,7 @@ describe('focus slice', () => {
     expect(active?.planned_ms).toBe(25 * 60_000)
   })
 
-  it('completing from focus logs the session and pays the bonus (+15/+7)', async () => {
+  it('completing from focus logs the session and pays the bonus (+40/+17)', async () => {
     render(<Harness />)
     await capture('Write report')
     fireEvent.click(await screen.findByRole('button', { name: /focus on "write report"/i }))
@@ -59,12 +59,12 @@ describe('focus slice', () => {
 
     const [completion] = await db.completions.toArray()
     const [session] = await db.focus_sessions.toArray()
-    expect(completion).toMatchObject({ xp_awarded: 15, coins_awarded: 7, dirty: 1 })
+    expect(completion).toMatchObject({ xp_awarded: 40, coins_awarded: 17, dirty: 1 })
     expect(completion.focus_session_id).toBe(session.id)
     expect(session).toMatchObject({ planned_ms: 25 * 60_000, dirty: 1 })
     expect(session.ended_at).not.toBeNull()
     expect(await getMeta(META_KEYS.activeFocus)).toBeUndefined()
-    expect((await db.coin_ledger.toArray())[0].delta).toBe(7)
+    expect((await db.coin_ledger.toArray())[0].delta).toBe(17)
   })
 
   it('ending focus without completing logs the session, task stays open, no reward', async () => {

@@ -162,7 +162,7 @@ describe('tasks slice', () => {
 
     await waitFor(async () => expect(await db.completions.count()).toBe(1))
     const [completion] = await db.completions.toArray()
-    expect(completion.xp_awarded).toBe(16) // top-right corner of the matrix
-    expect(completion.coins_awarded).toBe(5) // coins stay flat
+    expect(completion.xp_awarded).toBe(40) // top-right corner of the matrix
+    expect(completion.coins_awarded).toBe(12) // coins stay flat
   })
 })

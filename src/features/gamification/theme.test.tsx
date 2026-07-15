@@ -6,7 +6,7 @@ import { ThemePicker } from './ThemePicker'
 
 vi.mock('../../sync/sync', () => ({ requestSync: vi.fn() }))
 
-/** Seed XP by appending completions (25 endowed + 10 each). */
+/** Seed XP by appending completions (25 endowed + 25 each). */
 async function seedXp(completions: number) {
   for (let i = 0; i < completions; i++) {
     await db.completions.add(
@@ -33,7 +33,7 @@ describe('ThemePicker', () => {
   })
 
   it('lets you select an unlocked theme and applies it to <html>', async () => {
-    await seedXp(20) // ~225 XP → well past level 3
+    await seedXp(20) // ~525 XP → well past level 3
     render(<ThemePicker />)
 
     const meadow = await screen.findByRole('button', { name: /meadow/i })

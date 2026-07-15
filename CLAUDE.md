@@ -131,12 +131,12 @@ Two surfaces must stay compatible: the **local IndexedDB schema** and the **Supa
 
 ## Gamification numbers (defaults — tune in Phase 5, don't invent your own)
 
-**Earning:**
+**Earning** (retuned ~2.5× on 2026-07-15 — Tim's ask: progression 2–3× faster; the level curve stays locked, speed comes from earning):
 
 | Event | XP | Coins |
 |-------|----|----|
-| Complete a task | +10 | +5 |
-| Complete from a focus session | +15 (10 + 5 bonus) | +7 (5 + 2) |
+| Complete a task | +25 at matrix centre (position prices 10–40) | +12 |
+| Complete from a focus session | above + 15 bonus (centre = +40) | +17 (12 + 5) |
 | Surprise crit (v1.1, ~10% roll) | 2× the above | — |
 
 - **Endowed start:** new account seeded with **25 XP** (Level 1, bar ~42% toward Level 2). Bars **never render empty**.

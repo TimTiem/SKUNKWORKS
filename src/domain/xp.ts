@@ -10,10 +10,12 @@ import type { CompletionRow } from '../types/rows'
 export const ENDOWED_XP = 25
 
 // Earning defaults (CLAUDE.md → gamification numbers; tune in Phase 5, don't invent).
-export const XP_TASK = 10
-export const XP_FOCUS_BONUS = 5
-export const COINS_TASK = 5
-export const COINS_FOCUS_BONUS = 2
+// Tuned ~2.5x on 2026-07-15 (Tim's ask: progression 2–3x faster). The level
+// curve stays locked — speed comes from earning, and history never recalibrates.
+export const XP_TASK = 25
+export const XP_FOCUS_BONUS = 15
+export const COINS_TASK = 12
+export const COINS_FOCUS_BONUS = 5
 
 export function totalXp(completions: readonly Pick<CompletionRow, 'xp_awarded'>[]): number {
   return ENDOWED_XP + completions.reduce((sum, c) => sum + c.xp_awarded, 0)
@@ -23,8 +25,8 @@ export function totalXp(completions: readonly Pick<CompletionRow, 'xp_awarded'>[
  * v1.1: XP scales with the task's Eisenhower position at completion time —
  * importance weighted over urgency. Computed once, appended to the log
  * (history never recalibrates); the matrix centre (50/50) pays exactly the
- * classic +10, and the floor keeps every completion rewarding (P8):
- *   4 + round(12 · (0.6·importance + 0.4·urgency)/100)  →  4..16 XP.
+ * flat XP_TASK, and the floor keeps every completion rewarding (P8):
+ *   10 + round(30 · (0.6·importance + 0.4·urgency)/100)  →  10..40 XP.
  * Coins stay flat so reward pricing stays predictable.
  */
 export function completionRewards(
@@ -34,7 +36,7 @@ export function completionRewards(
 ): { xp: number; coins: number } {
   const score = (0.6 * importance + 0.4 * urgency) / 100
   return {
-    xp: 4 + Math.round(12 * score) + (fromFocus ? XP_FOCUS_BONUS : 0),
+    xp: 10 + Math.round(30 * score) + (fromFocus ? XP_FOCUS_BONUS : 0),
     coins: COINS_TASK + (fromFocus ? COINS_FOCUS_BONUS : 0),
   }
 }

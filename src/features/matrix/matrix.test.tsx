@@ -110,6 +110,6 @@ describe('matrix screen', () => {
     render(<MatrixScreen />)
 
     fireEvent.click(await screen.findByRole('button', { name: /move "priced task"/i }))
-    expect(screen.getByRole('status').textContent).toContain('worth 16 XP')
+    expect(screen.getByRole('status').textContent).toContain('worth 40 XP')
   })
 })

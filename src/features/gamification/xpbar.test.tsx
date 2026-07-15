@@ -49,18 +49,18 @@ describe('XpBar', () => {
     captureAndComplete('Buy milk')
     fireEvent.click(await screen.findByRole('button', { name: /complete "buy milk"/i }))
 
-    expect(await screen.findByText(/^35 XP$/)).toBeInTheDocument()
-    expect(screen.getByText(/5 coins/i)).toBeInTheDocument()
-    expect(await screen.findByText('+10 XP')).toBeInTheDocument() // the pop
+    expect(await screen.findByText(/^50 XP$/)).toBeInTheDocument()
+    expect(screen.getByText(/12 coins/i)).toBeInTheDocument()
+    expect(await screen.findByText('+25 XP')).toBeInTheDocument() // the pop
 
     expect(await db.completions.count()).toBe(1)
     expect(await db.coin_ledger.count()).toBe(1)
     const [completion] = await db.completions.toArray()
-    expect(completion).toMatchObject({ xp_awarded: 10, coins_awarded: 5, dirty: 1 })
+    expect(completion).toMatchObject({ xp_awarded: 25, coins_awarded: 12, dirty: 1 })
   })
 
   it('crossing a threshold celebrates the level-up (FR-27)', async () => {
-    await seedCompletions(3) // 25 + 30 = 55 XP — 5 short of level 2
+    await seedCompletions(1) // 25 + 25 = 50 XP — 10 short of level 2
     render(<Screen />)
     expect(await screen.findByText(/lv 1/i)).toBeInTheDocument()
 
