@@ -16,16 +16,21 @@ export function buildCompletion(args: {
    * keep the classic flat numbers for callers without a matrix position. */
   xpAwarded?: number
   coinsAwarded?: number
+  /** Surprise crit (domain/xp rollCritMultiplier). Doubles XP only; the
+   * stored xp_awarded is the FINAL amount so totals stay a plain sum. */
+  multiplier?: number
 }): CompletionRow {
   const fromFocus = args.focusSessionId != null
+  const multiplier = args.multiplier ?? 1
+  const baseXp = args.xpAwarded ?? (fromFocus ? XP_TASK + XP_FOCUS_BONUS : XP_TASK)
   return {
     id: args.id,
     user_id: null,
     task_id: args.taskId,
     completed_at: args.nowIso,
-    xp_awarded: args.xpAwarded ?? (fromFocus ? XP_TASK + XP_FOCUS_BONUS : XP_TASK),
+    xp_awarded: baseXp * multiplier,
     coins_awarded: args.coinsAwarded ?? (fromFocus ? COINS_TASK + COINS_FOCUS_BONUS : COINS_TASK),
-    multiplier: 1,
+    multiplier,
     focus_session_id: args.focusSessionId ?? null,
     created_at: args.nowIso,
     updated_at: args.nowIso,

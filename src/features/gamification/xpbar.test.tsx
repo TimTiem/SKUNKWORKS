@@ -34,6 +34,8 @@ function captureAndComplete(text: string) {
 describe('XpBar', () => {
   beforeEach(async () => {
     await Promise.all(db.tables.map((t) => t.clear()))
+    // Pin the crit roll to a miss so XP assertions stay deterministic.
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
   })
 
   it('renders the endowed start — never an empty bar (P6)', async () => {
@@ -57,6 +59,21 @@ describe('XpBar', () => {
     expect(await db.coin_ledger.count()).toBe(1)
     const [completion] = await db.completions.toArray()
     expect(completion).toMatchObject({ xp_awarded: 25, coins_awarded: 12, dirty: 1 })
+  })
+
+  it('a crit completion doubles XP and gets its own celebration', async () => {
+    // Start mid-level-2 (25 + 2×25 = 75) so the crit itself doesn't cross a
+    // level boundary — a level-up pop would (rightly) outrank the crit pop.
+    await seedCompletions(2)
+    vi.spyOn(Math, 'random').mockReturnValue(0.05) // force the ~10% roll to hit
+    render(<Screen />)
+    captureAndComplete('Lucky one')
+    fireEvent.click(await screen.findByRole('button', { name: /complete "lucky one"/i }))
+
+    expect(await screen.findByText('CRIT ×2 — +50 XP')).toBeInTheDocument()
+    expect(await screen.findByText(/^125 XP$/)).toBeInTheDocument() // 75 + 50
+    const crit = (await db.completions.toArray()).find((c) => c.multiplier === 2)
+    expect(crit).toMatchObject({ xp_awarded: 50, coins_awarded: 12, multiplier: 2 })
   })
 
   it('crossing a threshold celebrates the level-up (FR-27)', async () => {

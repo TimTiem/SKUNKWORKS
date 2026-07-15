@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { db } from '../../db/db'
 import { titleForLevel } from '../../domain/levels'
 import { celebrationClass } from '../../ui/motion/celebrate'
 import { useStats } from './useStats'
@@ -12,7 +13,12 @@ import { getLastSeenXp, setLastSeenXp } from './xpMemory'
  */
 export function XpBar() {
   const stats = useStats()
-  const [pop, setPop] = useState<{ text: string; level: boolean; seq: number } | null>(null)
+  const [pop, setPop] = useState<{
+    text: string
+    level: boolean
+    crit: boolean
+    seq: number
+  } | null>(null)
 
   const xp = stats?.totalXp
   const level = stats?.level
@@ -21,22 +27,29 @@ export function XpBar() {
     const before = getLastSeenXp()
     setLastSeenXp({ xp, level })
     if (!before) return
-    const next =
-      level > before.level
-        ? { text: `Level ${level} — ${titleForLevel(level)}!`, level: true }
-        : xp > before.xp
-          ? { text: `+${xp - before.xp} XP`, level: false }
-          : null
-    if (!next) return
     // Reacting to the Dexie live-query store (an external system) is exactly
     // what an effect is for; the transient pop is derived from that change.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPop((p) => ({ ...next, seq: (p?.seq ?? 0) + 1 }))
+    const push = (next: { text: string; level: boolean; crit: boolean }) =>
+      setPop((p) => ({ ...next, seq: (p?.seq ?? 0) + 1 }))
+    if (level > before.level) {
+      push({ text: `Level ${level} — ${titleForLevel(level)}!`, level: true, crit: false })
+    } else if (xp > before.xp) {
+      const gained = xp - before.xp
+      // A crit deserves its own moment (variable reward, P6) — check whether
+      // the freshest completion in the log rolled one.
+      void db.completions
+        .orderBy('completed_at')
+        .last()
+        .then((latest) => {
+          const crit = (latest?.multiplier ?? 1) > 1
+          push({ text: crit ? `CRIT ×2 — +${gained} XP` : `+${gained} XP`, level: false, crit })
+        })
+    }
   }, [xp, level])
 
   useEffect(() => {
     if (!pop) return
-    const timer = setTimeout(() => setPop(null), pop.level ? 2600 : 1400)
+    const timer = setTimeout(() => setPop(null), pop.level ? 2600 : pop.crit ? 2200 : 1400)
     return () => clearTimeout(timer)
   }, [pop])
 
@@ -81,10 +94,14 @@ export function XpBar() {
           key={pop.seq}
           role="status"
           className={`absolute -top-3 right-3 rounded-pill px-3 py-1 text-sm font-semibold shadow-pop ${
-            // Level-ups rotate the celebration set by level; everyday +XP pops
-            // stay the quick, consistent pop.
-            pop.level ? celebrationClass(stats.level) : 'celebrate-pop'
-          } ${pop.level ? 'bg-accent-strong text-accent-ink' : 'bg-surface-overlay text-accent-soft'}`}
+            // Level-ups rotate the celebration set by level; a crit slams in
+            // like a stamp; everyday +XP pops stay the quick, consistent pop.
+            pop.level ? celebrationClass(stats.level) : pop.crit ? 'celebrate-stamp' : 'celebrate-pop'
+          } ${
+            pop.level || pop.crit
+              ? 'bg-accent-strong text-accent-ink'
+              : 'bg-surface-overlay text-accent-soft'
+          }`}
         >
           {pop.text}
         </p>

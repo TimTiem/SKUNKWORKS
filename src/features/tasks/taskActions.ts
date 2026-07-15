@@ -8,7 +8,7 @@ import {
   wouldCreateCycle,
 } from '../../domain/priority'
 import { newTask, withSoftDelete, withStatus, withTaskPatch } from '../../domain/tasks'
-import { completionRewards } from '../../domain/xp'
+import { completionRewards, rollCritMultiplier } from '../../domain/xp'
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
 import { requestSync } from '../../sync/sync'
@@ -51,6 +51,7 @@ export async function completeTask(task: TaskRow): Promise<void> {
     nowIso: now,
     xpAwarded: rewards.xp,
     coinsAwarded: rewards.coins,
+    multiplier: rollCritMultiplier(), // ~10% surprise double XP
   })
   const coinEarn = buildCoinEarn(completion, newId())
   await db.transaction('rw', [db.tasks, db.completions, db.coin_ledger], async () => {

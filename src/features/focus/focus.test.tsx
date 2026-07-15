@@ -32,6 +32,8 @@ async function capture(text: string) {
 describe('focus slice', () => {
   beforeEach(async () => {
     await Promise.all(db.tables.map((t) => t.clear()))
+    // Pin the crit roll to a miss so XP assertions stay deterministic.
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
   })
 
   it('starts focus in one tap and shows the ring with the task', async () => {

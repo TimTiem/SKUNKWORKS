@@ -40,3 +40,18 @@ export function completionRewards(
     coins: COINS_TASK + (fromFocus ? COINS_FOCUS_BONUS : 0),
   }
 }
+
+/**
+ * Surprise crit (fast-follow): ~10% of completions pay DOUBLE XP — a
+ * variable-ratio bonus on top of the guaranteed reward, never instead of it
+ * (P4/P8: purely additive, a miss just pays the normal amount). Coins stay
+ * flat so reward pricing stays predictable. The rolled multiplier is stored
+ * on the completion row (`multiplier`), with `xp_awarded` already multiplied
+ * — totals stay a plain sum over the log.
+ */
+export const CRIT_CHANCE = 0.1
+export const CRIT_MULTIPLIER = 2
+
+export function rollCritMultiplier(rng: () => number = Math.random): number {
+  return rng() < CRIT_CHANCE ? CRIT_MULTIPLIER : 1
+}

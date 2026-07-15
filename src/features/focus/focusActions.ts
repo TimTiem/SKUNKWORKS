@@ -3,6 +3,7 @@ import { META_KEYS, setMeta } from '../../db/meta'
 import { buildCoinEarn, buildCompletion } from '../../domain/completions'
 import { buildFocusSession, DEFAULT_FOCUS_MS, type ActiveFocus } from '../../domain/focus'
 import { withStatus } from '../../domain/tasks'
+import { rollCritMultiplier } from '../../domain/xp'
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
 import { requestSync } from '../../sync/sync'
@@ -41,6 +42,7 @@ export async function completeFocus(focus: ActiveFocus, task: TaskRow): Promise<
     focusSessionId: session.id,
     xpAwarded: rewards.xp,
     coinsAwarded: rewards.coins,
+    multiplier: rollCritMultiplier(), // ~10% surprise double XP
   })
   const coinEarn = buildCoinEarn(completion, newId())
   await db.transaction(

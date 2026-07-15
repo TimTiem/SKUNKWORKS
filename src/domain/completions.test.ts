@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildCoinEarn, buildCompletion } from './completions'
-import { completionRewards, totalXp } from './xp'
+import { completionRewards, CRIT_MULTIPLIER, rollCritMultiplier, totalXp } from './xp'
 
 const T0 = '2026-07-10T10:00:00.000Z'
 
@@ -68,5 +68,28 @@ describe('completionRewards (v1.1 — XP from matrix position)', () => {
   it('coins stay flat regardless of position (pricing stays predictable)', () => {
     expect(completionRewards(0, 0, false).coins).toBe(12)
     expect(completionRewards(100, 100, false).coins).toBe(12)
+  })
+})
+
+describe('surprise crit (fast-follow)', () => {
+  it('rolls ×2 under the 10% threshold, ×1 otherwise (deterministic rng)', () => {
+    expect(rollCritMultiplier(() => 0)).toBe(CRIT_MULTIPLIER)
+    expect(rollCritMultiplier(() => 0.0999)).toBe(CRIT_MULTIPLIER)
+    expect(rollCritMultiplier(() => 0.1)).toBe(1)
+    expect(rollCritMultiplier(() => 0.9)).toBe(1)
+  })
+
+  it('a crit completion stores doubled XP and the multiplier; coins stay flat (P4-additive)', () => {
+    const c = buildCompletion({
+      id: 'c-1',
+      taskId: 't-1',
+      nowIso: T0,
+      xpAwarded: 25,
+      coinsAwarded: 12,
+      multiplier: 2,
+    })
+    expect(c.xp_awarded).toBe(50) // final amount — totals stay a plain sum
+    expect(c.multiplier).toBe(2)
+    expect(c.coins_awarded).toBe(12)
   })
 })

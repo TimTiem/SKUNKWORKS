@@ -29,6 +29,8 @@ function capture(text: string) {
 describe('tasks slice', () => {
   beforeEach(async () => {
     await Promise.all(db.tables.map((t) => t.clear()))
+    // Pin the crit roll to a miss so XP assertions stay deterministic.
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
   })
 
   it('captures a task and shows it instantly, clearing the input', async () => {
