@@ -22,15 +22,21 @@ create table if not exists public.task_links (
   deleted_at timestamptz
 );
 
+-- Idempotent (drop-then-create) so a manual re-run in the SQL Editor
+-- converges instead of erroring on "already exists".
+drop trigger if exists stamp_updated_at on public.task_links;
 create trigger stamp_updated_at before insert or update on public.task_links
   for each row execute function public.stamp_updated_at();
 
-create index task_links_user_updated_idx on public.task_links (user_id, updated_at);
+create index if not exists task_links_user_updated_idx on public.task_links (user_id, updated_at);
 
 alter table public.task_links enable row level security;
+drop policy if exists task_links_select_own on public.task_links;
 create policy task_links_select_own on public.task_links
   for select using (auth.uid() = user_id);
+drop policy if exists task_links_insert_own on public.task_links;
 create policy task_links_insert_own on public.task_links
   for insert with check (auth.uid() = user_id);
+drop policy if exists task_links_update_own on public.task_links;
 create policy task_links_update_own on public.task_links
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
