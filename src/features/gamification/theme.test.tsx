@@ -51,7 +51,7 @@ describe('ThemePicker', () => {
     render(<ThemePicker />) // level 1
 
     await waitFor(() =>
-      expect(document.documentElement.getAttribute('data-theme')).toBe('nebula'),
+      expect(document.documentElement.getAttribute('data-theme')).toBe('ops'),
     )
   })
 })

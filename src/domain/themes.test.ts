@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { isThemeUnlocked, themeStates, themeUnlockedAtLevel } from './themes'
 
 describe('theme unlocks (derived from level)', () => {
-  it('only the default theme is unlocked at level 1', () => {
+  it('only the level-1 themes (ops default + nebula) are unlocked at level 1', () => {
     const states = themeStates(1)
+    expect(states.find((t) => t.id === 'ops')?.unlocked).toBe(true)
     expect(states.find((t) => t.id === 'nebula')?.unlocked).toBe(true)
-    expect(states.filter((t) => t.unlocked)).toHaveLength(1)
+    expect(states.filter((t) => t.unlocked)).toHaveLength(2)
   })
 
   it('unlocks more themes as level climbs, and never re-locks', () => {

@@ -233,7 +233,7 @@ Keep `domain/` free of React and IO — pure functions in, values out. That is w
 
 - A **documented design-token layer**: colors, type scale, spacing, radii, shadows, motion durations/easings — authored in `ui/tokens.ts` and mirrored into `tailwind.config`. **Cohesive, not templated.**
 - A small **motion vocabulary** (`enter` / `exit` / `celebrate`) reused consistently; **varied** celebration animations to fight novelty decay (celebration is not a single repeated GIF).
-- Light/dark themes; unlockable themes at milestone levels (Wave 2).
+- **Dark-only** (Tim's call, 2026-07-15 — "dark backgrounds, military, sleek"): one near-black chassis, no `prefers-color-scheme` split. Default theme is `ops` (gunmetal + tactical amber); unlockable themes at milestone levels swap accents only. Display font Black Ops One + UI font Rajdhani, bundled in `src/assets/fonts` (offline-first, no font CDN).
 - **All motion honors `prefers-reduced-motion`** with a static/non-motion fallback. This is **non-negotiable and part of MVP**, not a polish item.
 - Consult the frontend-design skill when authoring the visual system in Phase 5.
 

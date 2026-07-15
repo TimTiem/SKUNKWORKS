@@ -13,7 +13,7 @@ export default {
   theme: {
     extend: {
       colors: tokens.colors,
-      fontFamily: { sans: [...tokens.fonts.sans] },
+      fontFamily: { sans: [...tokens.fonts.sans], display: [...tokens.fonts.display] },
       borderRadius: tokens.radii,
       boxShadow: tokens.shadows,
       transitionDuration: tokens.motion.durations,
@@ -22,9 +22,9 @@ export default {
   },
   plugins: [
     plugin(({ addBase }) => {
-      // Dark-first per theme; light applies when the OS asks for it. Every
-      // theme is emitted as a `[data-theme]` rule so switching is a runtime
-      // attribute flip — no injected <style>, CSP-safe.
+      // Dark-only (Tim's call, 2026-07-15). Every theme is emitted as a
+      // `[data-theme]` rule so switching is a runtime attribute flip — no
+      // injected <style>, CSP-safe.
       addBase(themeBaseStyles())
     }),
   ],

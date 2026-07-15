@@ -18,8 +18,8 @@ export default defineConfig({
         description:
           'Single-user, offline-first, gamified productivity PWA. Start small. Win now.',
         display: 'standalone',
-        theme_color: '#0F1117',
-        background_color: '#0F1117',
+        theme_color: '#08090C',
+        background_color: '#08090C',
         icons: [
           { src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/pwa-512x512.png', sizes: '512x512', type: 'image/png' },

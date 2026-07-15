@@ -39,7 +39,7 @@ export function FocusRing({
         />
       </svg>
       <div className="absolute inset-0 grid place-items-center">
-        <span className="text-5xl font-semibold tabular-nums text-ink-strong">{label}</span>
+        <span className="font-display text-5xl tabular-nums text-ink-strong">{label}</span>
       </div>
     </div>
   )

@@ -56,7 +56,7 @@ export function Shell({ session }: { session: Session }) {
     <FactRevealProvider>
       <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
         <header className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <h1 className="text-lg font-bold tracking-tight text-ink-strong">SKUNKWORKS</h1>
+          <h1 className="font-display text-lg tracking-[0.14em] text-ink-strong">SKUNKWORKS</h1>
           <nav aria-label="Sections" className="flex gap-1">
             {VIEWS.map((v) => (
               <button
@@ -64,7 +64,7 @@ export function Shell({ session }: { session: Session }) {
                 type="button"
                 aria-current={view === v.id ? 'page' : undefined}
                 onClick={() => setView(v.id)}
-                className={`rounded-pill px-4 py-2 text-sm transition-colors duration-enter ease-standard ${
+                className={`rounded-pill px-4 py-2 text-sm font-semibold uppercase tracking-wide transition-colors duration-enter ease-standard ${
                   view === v.id
                     ? 'bg-surface-overlay text-ink-strong'
                     : 'text-ink-muted hover:text-ink-base'

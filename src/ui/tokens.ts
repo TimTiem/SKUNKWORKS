@@ -2,13 +2,17 @@
  * Design tokens — the single source of style truth (CLAUDE.md → Design system).
  *
  * Structure:
- *  - `palettes` hold the raw color values per theme (dark is the default;
- *    light applies via `prefers-color-scheme`). Wave 2's unlockable themes
- *    are additional palettes swapped in the same way.
+ *  - SKUNKWORKS is DARK-ONLY (Tim's call, 2026-07-15: "dark backgrounds,
+ *    military, sleek"). One near-black chassis is shared by every theme;
+ *    themes swap the accent/timer/XP colors only. `ops` (gunmetal + tactical
+ *    amber) is the default; the rest unlock at milestone levels (Wave 2).
  *  - `cssVariables()` flattens a palette into CSS custom properties; a small
  *    Tailwind plugin in `tailwind.config.ts` injects them, so components only
  *    ever speak semantic names (`bg-surface-raised`, `text-ink-muted`, …)
  *    and theming never touches component code.
+ *  - Type: Rajdhani (condensed, technical) for all UI text; Black Ops One
+ *    (stencil) for display moments — the wordmark, level, the focus clock.
+ *    Both ship bundled in `src/assets/fonts` (offline-first, no font CDN).
  *  - Type scale: we deliberately adopt Tailwind's default modular scale —
  *    boring, proven, and enough; the tokens here add families and weights.
  *
@@ -51,40 +55,26 @@ export interface Palette {
   }
 }
 
-export const palettes: Record<'dark' | 'light', Palette> = {
-  dark: {
-    surface: { base: '#0F1117', raised: '#171A23', overlay: '#232736' },
-    ink: { strong: '#F4F5F9', base: '#C3C7D4', muted: '#8A90A3' },
-    accent: { base: '#7C6CF6', soft: '#A99DF9', strong: '#5B48E8', ink: '#FFFFFF' },
-    xp: '#7C6CF6',
-    coin: '#F5B84B',
-    success: '#4ADE80',
-    focus: '#38BDF8',
-    shadow: {
-      card: '0 1px 2px rgb(0 0 0 / 0.25), 0 4px 16px rgb(0 0 0 / 0.20)',
-      pop: '0 4px 8px rgb(0 0 0 / 0.30), 0 12px 32px rgb(0 0 0 / 0.35)',
-    },
+/**
+ * The shared chassis: near-black gunmetal, crisp ink, deep shadows. Every
+ * theme rides on this — only accents differ (see ACCENTS below).
+ */
+const CHASSIS = {
+  surface: { base: '#08090C', raised: '#0E1014', overlay: '#161A21' },
+  ink: { strong: '#EEF1F4', base: '#B9BFC9', muted: '#7B8290' },
+  coin: '#F5B84B',
+  success: '#4ADE80',
+  shadow: {
+    card: '0 1px 2px rgb(0 0 0 / 0.40), 0 4px 16px rgb(0 0 0 / 0.35)',
+    pop: '0 4px 8px rgb(0 0 0 / 0.45), 0 12px 32px rgb(0 0 0 / 0.50)',
   },
-  light: {
-    surface: { base: '#F5F6FA', raised: '#FFFFFF', overlay: '#E7E9F2' },
-    ink: { strong: '#171A23', base: '#3C4152', muted: '#5D6478' },
-    accent: { base: '#5B48E8', soft: '#7C6CF6', strong: '#4633CF', ink: '#FFFFFF' },
-    xp: '#5B48E8',
-    coin: '#8A5E00',
-    success: '#1A7F42',
-    focus: '#0273A8',
-    shadow: {
-      card: '0 1px 2px rgb(23 26 35 / 0.08), 0 4px 16px rgb(23 26 35 / 0.07)',
-      pop: '0 4px 8px rgb(23 26 35 / 0.12), 0 12px 32px rgb(23 26 35 / 0.14)',
-    },
-  },
-}
+} as const
 
 /**
- * Unlockable themes (Wave 2 cosmetics, P7): each is the base chassis
- * (surface/ink/shadow) with a swapped accent + timer + XP color, in both
- * dark and light variants. Derived from level — nothing to store or manage.
- * `nebula` is the default (level 1); the rest unlock at milestone levels.
+ * Unlockable themes (Wave 2 cosmetics, P7): accent + timer + XP color swaps
+ * on the shared chassis, derived from level — nothing to store or manage.
+ * `ops` is the default (level 1); `nebula` (the old default) stays a level-1
+ * choice so nothing Tim had is taken away (P4 in spirit).
  */
 export interface ThemeMeta {
   id: string
@@ -93,6 +83,7 @@ export interface ThemeMeta {
 }
 
 export const THEMES: readonly ThemeMeta[] = [
+  { id: 'ops', name: 'Night Ops', unlockLevel: 1 },
   { id: 'nebula', name: 'Nebula', unlockLevel: 1 },
   { id: 'meadow', name: 'Meadow', unlockLevel: 3 },
   { id: 'ember', name: 'Ember', unlockLevel: 5 },
@@ -100,84 +91,63 @@ export const THEMES: readonly ThemeMeta[] = [
   { id: 'slate', name: 'Slate', unlockLevel: 12 },
 ]
 
-export const DEFAULT_THEME = 'nebula'
+export const DEFAULT_THEME = 'ops'
 
 interface AccentSpec {
   base: string
   soft: string
   strong: string
   focus: string
+  /** Text on an accent fill — amber needs dark ink, the others white. */
+  ink: string
 }
 
-/** Build a theme palette: base chassis + swapped accent/xp/focus. */
-function themed(base: Palette, accent: AccentSpec): Palette {
+const ACCENTS: Record<string, AccentSpec> = {
+  // Tactical HUD amber on gunmetal — the military default.
+  ops: { base: '#F5A524', soft: '#FFC55C', strong: '#C57F00', focus: '#38BDF8', ink: '#151002' },
+  nebula: { base: '#7C6CF6', soft: '#A99DF9', strong: '#5B48E8', focus: '#38BDF8', ink: '#FFFFFF' },
+  meadow: { base: '#4ADE80', soft: '#86EFAC', strong: '#22A24E', focus: '#38BDF8', ink: '#FFFFFF' },
+  ember: { base: '#FB923C', soft: '#FDBA74', strong: '#E4632A', focus: '#F5B84B', ink: '#FFFFFF' },
+  tide: { base: '#38BDF8', soft: '#7DD3FC', strong: '#0C93D6', focus: '#4ADE80', ink: '#FFFFFF' },
+  slate: { base: '#94A3B8', soft: '#CBD5E1', strong: '#64748B', focus: '#A99DF9', ink: '#FFFFFF' },
+}
+
+/** Build a theme palette: shared chassis + swapped accent/xp/focus. */
+function themed(accent: AccentSpec): Palette {
   return {
-    ...base,
-    accent: { base: accent.base, soft: accent.soft, strong: accent.strong, ink: '#FFFFFF' },
+    ...CHASSIS,
+    accent: { base: accent.base, soft: accent.soft, strong: accent.strong, ink: accent.ink },
     xp: accent.base,
     focus: accent.focus,
   }
 }
 
-const ACCENTS: Record<string, { dark: AccentSpec; light: AccentSpec }> = {
-  nebula: {
-    dark: { base: '#7C6CF6', soft: '#A99DF9', strong: '#5B48E8', focus: '#38BDF8' },
-    light: { base: '#5B48E8', soft: '#7C6CF6', strong: '#4633CF', focus: '#0273A8' },
-  },
-  meadow: {
-    dark: { base: '#4ADE80', soft: '#86EFAC', strong: '#22A24E', focus: '#38BDF8' },
-    light: { base: '#1A7F42', soft: '#22A24E', strong: '#136235', focus: '#0273A8' },
-  },
-  ember: {
-    dark: { base: '#FB923C', soft: '#FDBA74', strong: '#E4632A', focus: '#F5B84B' },
-    light: { base: '#C2410C', soft: '#E4632A', strong: '#9A3412', focus: '#8A5E00' },
-  },
-  tide: {
-    dark: { base: '#38BDF8', soft: '#7DD3FC', strong: '#0C93D6', focus: '#4ADE80' },
-    light: { base: '#0273A8', soft: '#0C93D6', strong: '#025A83', focus: '#1A7F42' },
-  },
-  slate: {
-    dark: { base: '#94A3B8', soft: '#CBD5E1', strong: '#64748B', focus: '#A99DF9' },
-    light: { base: '#475569', soft: '#64748B', strong: '#334155', focus: '#5B48E8' },
-  },
-}
-
-/** Full dark+light palette pair for each theme. */
-export const themePalettes: Record<string, { dark: Palette; light: Palette }> = Object.fromEntries(
-  THEMES.map((t) => [
-    t.id,
-    {
-      dark: themed(palettes.dark, ACCENTS[t.id].dark),
-      light: themed(palettes.light, ACCENTS[t.id].light),
-    },
-  ]),
+/** One palette per theme (the app is dark-only). */
+export const themePalettes: Record<string, Palette> = Object.fromEntries(
+  THEMES.map((t) => [t.id, themed(ACCENTS[t.id])]),
 )
 
 /**
  * Base styles for the Tailwind plugin: the default theme on bare `:root`
- * (correct first paint before JS), plus a `:root[data-theme="…"]` block per
- * theme, with all light-mode overrides grouped under one media query so
- * `prefers-color-scheme` keeps working after a runtime theme switch.
+ * (correct first paint before JS), plus a `[data-theme="…"]` block per theme.
+ * The bare attribute selector matches <html> (runtime switch = one attribute
+ * flip) AND any nested element — so the ThemePicker swatches can each carry
+ * their own theme's colors.
  */
 /** Recursive CSS-rule shape (selectors → declarations or nested at-rules). */
 export type CssRules = { [key: string]: string | CssRules }
 
 export function themeBaseStyles(): CssRules {
   const rules: CssRules = {
-    ':root': cssVariables(themePalettes[DEFAULT_THEME].dark),
-  }
-  const lightOverrides: CssRules = {
-    ':root': cssVariables(themePalettes[DEFAULT_THEME].light),
+    ':root': cssVariables(themePalettes[DEFAULT_THEME]),
   }
   for (const { id } of THEMES) {
-    rules[`:root[data-theme="${id}"]`] = cssVariables(themePalettes[id].dark)
-    lightOverrides[`:root[data-theme="${id}"]`] = cssVariables(themePalettes[id].light)
+    rules[`[data-theme="${id}"]`] = cssVariables(themePalettes[id])
   }
-  rules['@media (prefers-color-scheme: light)'] = lightOverrides
   return rules
 }
 
-/** '#7C6CF6' → '124 108 246' (rgb triplet, so Tailwind alpha modifiers work). */
+/** '#F5A524' → '245 165 36' (rgb triplet, so Tailwind alpha modifiers work). */
 export function hexToRgbTriplet(hex: string): string {
   const value = hex.replace('#', '')
   const r = parseInt(value.slice(0, 2), 16)
@@ -235,9 +205,10 @@ export const tokens = {
     focus: v('--color-focus'),
   },
 
-  /** System stack: fast, native on every platform, no font-loading flash. */
+  /** Bundled families (see src/assets/fonts); system stacks as fallback. */
   fonts: {
     sans: [
+      'Rajdhani',
       'system-ui',
       '-apple-system',
       'Segoe UI',
@@ -246,11 +217,14 @@ export const tokens = {
       'Arial',
       'sans-serif',
     ],
+    /** Display stencil — wordmark, level, focus clock. One weight (400). */
+    display: ['"Black Ops One"', 'Rajdhani', 'system-ui', 'sans-serif'],
   },
 
+  /** Sharp, technical corners — sleek over friendly. */
   radii: {
-    control: '0.625rem', // buttons, inputs
-    card: '1rem', // cards, sheets, list rows
+    control: '0.375rem', // buttons, inputs
+    card: '0.625rem', // cards, sheets, list rows
     pill: '9999px', // progress bars, chips
   },
 

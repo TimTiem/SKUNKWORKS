@@ -2,12 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bundled fonts (src/assets/fonts, OFL) — the PWA is offline-first, so no
+   font CDN; Workbox precaches these with the shell. `swap` keeps first paint
+   instant on the system stack. */
+@font-face {
+  font-family: 'Black Ops One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/black-ops-one-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/rajdhani-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./assets/fonts/rajdhani-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./assets/fonts/rajdhani-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/rajdhani-700.woff2') format('woff2');
+}
+
 @layer base {
   html {
     @apply bg-surface-base text-ink-base antialiased;
   }
+  /* Rajdhani reads best at 500 on the dark chassis; heavier weights still win. */
   body {
-    @apply min-h-dvh font-sans;
+    @apply min-h-dvh font-sans font-medium;
+    /* Faint tactical grid — texture, never noise (P7: ambient, costs no attention). */
+    background-image:
+      linear-gradient(rgb(var(--color-ink-strong) / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-ink-strong) / 0.025) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
   /* Keyboard reachability (NFR-34): one consistent focus treatment. */
   :focus-visible {
@@ -30,19 +75,43 @@
   .celebrate-rise {
     animation: celebrate-rise 320ms cubic-bezier(0, 0, 0, 1) both;
   }
-  .celebrate-spring {
-    animation: celebrate-spring 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  /* Slams down like a confirmation stamp. */
+  .celebrate-stamp {
+    animation: celebrate-stamp 340ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
-  .celebrate-sway {
-    animation: celebrate-sway 600ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* HUD power-on flicker. */
+  .celebrate-flicker {
+    animation: celebrate-flicker 480ms linear both;
+  }
+  /* Slow sheen sweeping the XP bar fill — alive, not attention-seeking. */
+  .xp-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .xp-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.28) 50%,
+      transparent 65%
+    );
+    transform: translateX(-100%);
+    animation: xp-sheen 3.2s cubic-bezier(0.2, 0, 0, 1) infinite;
   }
   @media (prefers-reduced-motion: reduce) {
     .motion-enter,
     .celebrate-pop,
     .celebrate-rise,
-    .celebrate-spring,
-    .celebrate-sway {
+    .celebrate-stamp,
+    .celebrate-flicker {
       animation: none;
+    }
+    .xp-sheen::after {
+      animation: none;
+      content: none;
     }
   }
 }
@@ -68,30 +137,49 @@
   }
 }
 
-@keyframes celebrate-spring {
+@keyframes celebrate-stamp {
   0% {
     opacity: 0;
-    transform: scale(0.7);
+    transform: scale(1.7) rotate(-4deg);
   }
   60% {
-    transform: scale(1.08);
+    opacity: 1;
+    transform: scale(0.95) rotate(1deg);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
   }
 }
 
-@keyframes celebrate-sway {
+@keyframes celebrate-flicker {
   0% {
     opacity: 0;
-    transform: translateY(8px) rotate(-3deg);
   }
-  50% {
-    transform: translateY(0) rotate(2deg);
+  12% {
+    opacity: 1;
   }
+  24% {
+    opacity: 0.35;
+  }
+  40% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.6;
+  }
+  70%,
   100% {
     opacity: 1;
-    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes xp-sheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  55%,
+  100% {
+    transform: translateX(100%);
   }
 }

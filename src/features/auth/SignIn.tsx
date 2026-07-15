@@ -37,7 +37,7 @@ export function SignIn() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-6 p-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-ink-strong">SKUNKWORKS</h1>
+        <h1 className="font-display text-3xl tracking-[0.14em] text-ink-strong">SKUNKWORKS</h1>
         <p className="mt-1 text-ink-muted">Start small. Win now.</p>
       </div>
 

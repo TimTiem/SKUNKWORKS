@@ -45,7 +45,7 @@ export function XpBar() {
   return (
     <section aria-label="Progress" className="relative rounded-card bg-surface-raised p-3 shadow-card">
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-semibold text-ink-strong">
+        <span className="font-display tracking-wider text-ink-strong">
           Lv {stats.level} · {titleForLevel(stats.level)}
         </span>
         <span className="text-ink-muted">
@@ -62,7 +62,7 @@ export function XpBar() {
         className="mt-2 h-2.5 overflow-hidden rounded-pill bg-surface-overlay"
       >
         <div
-          className="h-full rounded-pill bg-xp transition-[width] duration-celebrate ease-standard motion-reduce:transition-none"
+          className="xp-sheen h-full rounded-pill bg-xp transition-[width] duration-celebrate ease-standard motion-reduce:transition-none"
           // Endowed progress (P6): even a fresh level shows a living sliver.
           style={{ width: `${Math.max(4, stats.fraction * 100)}%` }}
         />
