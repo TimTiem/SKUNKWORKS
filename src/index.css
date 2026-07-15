@@ -83,6 +83,29 @@
   .celebrate-flicker {
     animation: celebrate-flicker 480ms linear both;
   }
+  /* Matrix surface: fine tactical grid + a quiet accent glow toward the
+     top-right "Do first" corner — anticipation by light, not judgement
+     by color (P6/P8). */
+  .matrix-surface {
+    background-image:
+      radial-gradient(
+        140% 140% at 100% 0%,
+        rgb(var(--color-accent-base) / 0.09),
+        transparent 55%
+      ),
+      linear-gradient(rgb(var(--color-ink-strong) / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-ink-strong) / 0.035) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      10% 10%,
+      10% 10%;
+  }
+  .matrix-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
   /* Slow sheen sweeping the XP bar fill — alive, not attention-seeking. */
   .xp-sheen {
     position: relative;

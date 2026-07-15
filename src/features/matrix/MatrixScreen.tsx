@@ -96,7 +96,7 @@ export function MatrixScreen() {
             <span className="font-medium text-ink-base">{selected.text}</span>
             {' — importance '}
             {selectedPos.importance} · urgency {selectedPos.urgency} · worth{' '}
-            <span className="font-medium text-ink-base">
+            <span className="font-display tracking-wide text-accent-base">
               {completionRewards(selectedPos.importance, selectedPos.urgency, false).xp} XP
             </span>
           </>
@@ -105,7 +105,7 @@ export function MatrixScreen() {
         )}
       </p>
 
-      <div className="flex justify-between text-xs text-ink-muted">
+      <div className="flex justify-between text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
         <span>↑ more important</span>
         <span>more urgent →</span>
       </div>
@@ -114,23 +114,39 @@ export function MatrixScreen() {
         ref={surfaceRef}
         role="application"
         aria-label="Eisenhower matrix"
-        className="relative aspect-square w-full touch-none select-none overflow-hidden rounded-card bg-surface-raised shadow-card"
+        className="matrix-surface relative aspect-square w-full touch-none select-none overflow-hidden rounded-card bg-surface-raised shadow-card"
       >
         {/* quadrant cross + quiet labels — orientation, never judgement (P8) */}
-        <div aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px bg-surface-overlay" />
-        <div aria-hidden="true" className="absolute inset-x-0 top-1/2 h-px bg-surface-overlay" />
-        <span className="pointer-events-none absolute left-2 top-2 text-xs text-ink-muted">
+        <div aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px bg-ink-muted/20" />
+        <div aria-hidden="true" className="absolute inset-x-0 top-1/2 h-px bg-ink-muted/20" />
+        <span className="matrix-label pointer-events-none absolute left-2.5 top-2.5 text-ink-muted/80">
           Plan ahead
         </span>
-        <span className="pointer-events-none absolute right-2 top-2 text-xs text-ink-muted">
+        <span className="matrix-label pointer-events-none absolute right-2.5 top-2.5 text-accent-base/90">
           Do first
         </span>
-        <span className="pointer-events-none absolute bottom-2 left-2 text-xs text-ink-muted">
+        <span className="matrix-label pointer-events-none absolute bottom-2.5 left-2.5 text-ink-muted/80">
           Whenever
         </span>
-        <span className="pointer-events-none absolute bottom-2 right-2 text-xs text-ink-muted">
+        <span className="matrix-label pointer-events-none absolute bottom-2.5 right-2.5 text-ink-muted/80">
           Fit in
         </span>
+
+        {/* targeting reticle — hairlines tracking the dragged chip */}
+        {drag && (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 w-px bg-accent-base/40"
+              style={{ left: `${drag.urgency}%` }}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 h-px bg-accent-base/40"
+              style={{ top: `${100 - drag.importance}%` }}
+            />
+          </>
+        )}
 
         {tasks.length === 0 && (
           <p className="absolute inset-0 grid place-items-center p-6 text-center text-ink-muted">
@@ -141,6 +157,9 @@ export function MatrixScreen() {
         {tasks.map((task) => {
           const pos = displayPos(task)
           const isSelected = selected?.id === task.id
+          const isDragging = drag?.id === task.id
+          // A deadline, subtask, or dependent visibly pulling this chip right.
+          const pulled = !isDragging && pos.urgency > task.urgency
           return (
             <button
               key={task.id}
@@ -153,16 +172,38 @@ export function MatrixScreen() {
               onKeyDown={(e) => nudge(e, task)}
               onClick={() => setSelectedId(task.id)}
               style={{ left: `${pos.urgency}%`, top: `${100 - pos.importance}%` }}
-              className={`absolute min-h-11 max-w-32 -translate-x-1/2 -translate-y-1/2 touch-none truncate rounded-pill px-3 py-2 text-xs shadow-card ${
+              className={`motion-enter absolute min-h-11 max-w-32 -translate-x-1/2 -translate-y-1/2 touch-none truncate rounded-pill px-3 py-2 text-xs ${
                 isSelected
-                  ? 'z-10 bg-accent-strong text-accent-ink'
-                  : 'bg-surface-overlay text-ink-base'
-              } ${drag?.id === task.id ? '' : 'motion-safe:transition-[left,top] motion-safe:duration-enter motion-safe:ease-standard'}`}
+                  ? 'z-10 bg-accent-strong text-accent-ink ring-2 ring-accent-base'
+                  : 'bg-surface-overlay text-ink-base ring-1 ring-ink-muted/15'
+              } ${
+                isDragging
+                  ? 'z-20 scale-110 cursor-grabbing shadow-pop'
+                  : 'cursor-grab shadow-card motion-safe:transition-[left,top,transform] motion-safe:duration-enter motion-safe:ease-standard'
+              }`}
             >
+              {pulled && (
+                <span aria-hidden="true" className={isSelected ? 'mr-1' : 'mr-1 text-accent-base'}>
+                  »
+                </span>
+              )}
               {task.text}
             </button>
           )
         })}
+
+        {/* the reward, right where you're looking (P6) */}
+        {drag && selected && selectedPos && (
+          <span
+            aria-hidden="true"
+            style={{ left: `${drag.urgency}%`, top: `${100 - drag.importance}%` }}
+            className={`pointer-events-none absolute z-30 -translate-x-1/2 rounded-pill bg-surface-base/90 px-2.5 py-1 font-display text-xs tracking-wide text-accent-base shadow-pop ${
+              drag.importance > 82 ? 'translate-y-[1.6rem]' : '-translate-y-[3.1rem]'
+            }`}
+          >
+            +{completionRewards(selectedPos.importance, selectedPos.urgency, false).xp} XP
+          </span>
+        )}
       </div>
 
       <p className="text-xs text-ink-muted">
