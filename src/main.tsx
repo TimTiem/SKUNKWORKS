@@ -2,14 +2,19 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './pwa.ts'
-import { getMeta, META_KEYS } from './db/meta'
+import { getMeta, setMeta, META_KEYS } from './db/meta'
 import { runMigrations } from './db/migrations'
+import { captureSharedText } from './features/capture/sharedCapture'
 import { captureInstallPrompt } from './features/install/installPrompt'
 import { setSoundEnabled } from './ui/feedback'
+import { APP_VERSION } from './lib/version'
 import App from './App.tsx'
 
 // beforeinstallprompt fires once, early — capture it before anything renders.
 captureInstallPrompt()
+// If launched via an OS share / "Capture" shortcut, grab the shared text now
+// (before render) and strip the URL, so CaptureBar can prefill it (FR-06).
+captureSharedText()
 
 const root = document.getElementById('root')!
 
@@ -22,6 +27,8 @@ runMigrations()
     // first completion can fire (default ON if never set). Fire-and-forget —
     // rendering never waits on it.
     void getMeta<boolean>(META_KEYS.soundEnabled).then((on) => setSoundEnabled(on ?? true))
+    // Record the running version (NFR-19) so Settings/export can show it.
+    void setMeta(META_KEYS.appVersion, APP_VERSION)
     createRoot(root).render(
       <StrictMode>
         <App />

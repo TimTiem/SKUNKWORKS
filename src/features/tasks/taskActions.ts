@@ -73,6 +73,22 @@ export async function setTaskDue(task: TaskRow, dueAtIso: string | null): Promis
   requestSync()
 }
 
+/** Optional light metadata (FR-11): note, tag, time estimate — never required.
+ * Read-modify-write inside a transaction so that rapid field blurs (note, tag
+ * and estimate committing almost together) each patch the FRESH row instead of
+ * the same stale render snapshot — otherwise the last write clobbers the others.
+ * Dexie serializes rw transactions on a table, so the patches compose. */
+export async function setTaskMeta(
+  task: TaskRow,
+  patch: Partial<Pick<TaskRow, 'note' | 'tag' | 'estimate_ms'>>,
+): Promise<void> {
+  await db.transaction('rw', db.tasks, async () => {
+    const fresh = (await db.tasks.get(task.id)) ?? task
+    await db.tasks.put(withTaskPatch(fresh, patch, nowISO()))
+  })
+  requestSync()
+}
+
 /** Matrix drag drop: store the dragged base position (0..100 each). */
 export async function setTaskPriority(
   task: TaskRow,

@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { addTask } from '../tasks/taskActions'
+import { clearSharedCapture, peekSharedCapture } from './sharedCapture'
 
 /**
  * The capture affordance (FR-01/02, P2): always visible, one field, nothing
@@ -7,13 +8,16 @@ import { addTask } from '../tasks/taskActions'
  * The write is local (Dexie), so capture works identically offline (FR-05).
  */
 export function CaptureBar() {
-  const [text, setText] = useState('')
+  // Prefill from OS-shared text if the app was launched via a share (FR-06).
+  // Peek (don't consume) so a StrictMode remount keeps the prefill.
+  const [text, setText] = useState(() => peekSharedCapture() ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
 
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!text.trim()) return
     void addTask(text)
+    clearSharedCapture() // shared text has now become a task
     setText('')
     inputRef.current?.focus()
   }

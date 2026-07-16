@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './sync/supabase'
@@ -56,6 +56,8 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: /skunkworks/i }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/signed in as tim@example.com/i)).toBeInTheDocument()
+    // Account details now live under the Settings tab.
+    fireEvent.click(screen.getByRole('button', { name: /settings/i }))
+    expect(await screen.findByText(/signed in as tim@example.com/i)).toBeInTheDocument()
   })
 })

@@ -1,7 +1,22 @@
 import { useState, type FormEvent } from 'react'
-import { dateInputToDueIso, dueIsoToDateInput } from '../../lib/time'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../../db/db'
+import {
+  dateInputToDueIso,
+  dueIsoToDateInput,
+  formatDurationMs,
+  minutesToMs,
+  msToMinutesInput,
+} from '../../lib/time'
+import { taskFocusActualMs } from '../../domain/timeSense'
 import type { TaskLinkRow, TaskRow } from '../../types/rows'
-import { addDependency, addSubtask, removeDependency, setTaskDue } from './taskActions'
+import {
+  addDependency,
+  addSubtask,
+  removeDependency,
+  setTaskDue,
+  setTaskMeta,
+} from './taskActions'
 
 /**
  * Inline planning panel (v1.1): optional deadline, subtasks, dependencies.
@@ -24,11 +39,38 @@ export function TaskDetail({
   const [subtaskText, setSubtaskText] = useState('')
   const [loopNote, setLoopNote] = useState(false)
 
+  // Optional light metadata (FR-11): local drafts, written on blur so we don't
+  // touch Dexie on every keystroke. Seeded once from the row.
+  const [note, setNote] = useState(task.note ?? '')
+  const [tag, setTag] = useState(task.tag ?? '')
+  const [estimate, setEstimate] = useState(msToMinutesInput(task.estimate_ms))
+
+  // This task's focus history, for the estimate-vs-actual reflection (FR-17).
+  // focus_sessions isn't indexed by task_id — a filter is fine at single-user scale.
+  const sessions = useLiveQuery(
+    () => db.focus_sessions.filter((s) => s.task_id === task.id).toArray(),
+    [task.id],
+  )
+  const focusedMs = taskFocusActualMs(sessions ?? [], task.id)
+
   function submitSubtask(event: FormEvent) {
     event.preventDefault()
     if (!subtaskText.trim()) return
     void addSubtask(task, subtaskText)
     setSubtaskText('')
+  }
+
+  function commitNote() {
+    const next = note.trim() || null
+    if (next !== (task.note ?? null)) void setTaskMeta(task, { note: next })
+  }
+  function commitTag() {
+    const next = tag.trim() || null
+    if (next !== (task.tag ?? null)) void setTaskMeta(task, { tag: next })
+  }
+  function commitEstimate() {
+    const next = minutesToMs(estimate)
+    if (next !== (task.estimate_ms ?? null)) void setTaskMeta(task, { estimate_ms: next })
   }
 
   async function pickBlocker(blockerId: string) {
@@ -128,6 +170,61 @@ export function TaskDetail({
         {loopNote && (
           <p className="text-sm text-ink-muted">
             That would make these tasks wait on each other — skipped it.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor={`note-${task.id}`} className="text-sm text-ink-muted">
+          Note
+        </label>
+        <textarea
+          id={`note-${task.id}`}
+          rows={2}
+          value={note}
+          placeholder="Anything you want to remember…"
+          onChange={(e) => setNote(e.target.value)}
+          onBlur={commitNote}
+          className="w-full resize-y rounded-control bg-surface-raised px-3 py-1.5 text-sm text-ink-strong placeholder:text-ink-muted"
+        />
+
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`tag-${task.id}`} className="text-sm text-ink-muted">
+              Tag
+            </label>
+            <input
+              id={`tag-${task.id}`}
+              type="text"
+              value={tag}
+              placeholder="e.g. work"
+              onChange={(e) => setTag(e.target.value)}
+              onBlur={commitTag}
+              className="w-32 rounded-control bg-surface-raised px-3 py-1.5 text-sm text-ink-strong placeholder:text-ink-muted"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`estimate-${task.id}`} className="text-sm text-ink-muted">
+              Estimate (min)
+            </label>
+            <input
+              id={`estimate-${task.id}`}
+              type="number"
+              min={1}
+              inputMode="numeric"
+              value={estimate}
+              placeholder="—"
+              onChange={(e) => setEstimate(e.target.value)}
+              onBlur={commitEstimate}
+              className="w-24 rounded-control bg-surface-raised px-3 py-1.5 text-sm text-ink-strong placeholder:text-ink-muted"
+            />
+          </div>
+        </div>
+
+        {task.estimate_ms != null && (
+          <p className="text-xs text-ink-muted">
+            Estimated {formatDurationMs(task.estimate_ms)}
+            {focusedMs > 0 && <> · focused {formatDurationMs(focusedMs)} so far</>}
           </p>
         )}
       </div>

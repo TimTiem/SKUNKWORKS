@@ -22,6 +22,15 @@ export interface Fact {
 /** Bump when facts are added/edited; unrelated to schema_version. */
 export const CONTENT_VERSION = 2
 
+/** Display names for the five categories (used by the reveal card + collection). */
+export const CATEGORY_LABEL: Record<FactCategory, string> = {
+  biology: 'Biology',
+  history: 'History',
+  mma: 'MMA',
+  strategy: 'Strategy',
+  mythology: 'Mythology',
+}
+
 export const FACTS: readonly Fact[] = [
   // ── Biology ──────────────────────────────────────────────────────────────
   { id: 'bio-001', category: 'biology', text: 'Octopuses have three hearts: two pump blood through the gills, and one pumps it through the rest of the body.' },

@@ -1,13 +1,5 @@
 import { useEffect } from 'react'
-import type { Fact, FactCategory } from '../../content/facts/facts'
-
-const CATEGORY_LABEL: Record<FactCategory, string> = {
-  biology: 'Biology',
-  history: 'History',
-  mma: 'MMA',
-  strategy: 'Strategy',
-  mythology: 'Mythology',
-}
+import { CATEGORY_LABEL, type Fact } from '../../content/facts/facts'
 
 /**
  * The surprise fact card, shown on the ~1-in-6 completions that reveal one.

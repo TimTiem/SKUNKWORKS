@@ -33,10 +33,13 @@ export function newTask(
   }
 }
 
-/** Patch planning fields (due date, matrix position) — LWW row update. */
+/** Patch planning/metadata fields (due date, matrix position, note/tag/estimate)
+ * — LWW row update. */
 export function withTaskPatch(
   task: TaskRow,
-  patch: Partial<Pick<TaskRow, 'due_at' | 'importance' | 'urgency' | 'note' | 'tag'>>,
+  patch: Partial<
+    Pick<TaskRow, 'due_at' | 'importance' | 'urgency' | 'note' | 'tag' | 'estimate_ms'>
+  >,
   nowIso: string,
 ): TaskRow {
   return { ...task, ...patch, updated_at: nowIso, dirty: 1 }

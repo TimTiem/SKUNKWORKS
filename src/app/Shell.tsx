@@ -3,8 +3,8 @@ import type { Session } from '@supabase/supabase-js'
 import { CaptureBar } from '../features/capture/CaptureBar'
 import { FocusScreen } from '../features/focus/FocusScreen'
 import { useActiveFocus } from '../features/focus/useActiveFocus'
-import { ExportButton } from '../features/export/ExportButton'
 import { FactRevealProvider } from '../features/facts/useFactReveal'
+import { FactsCollection } from '../features/facts/FactsCollection'
 import { InstallHint } from '../features/install/InstallHint'
 import { MatrixScreen } from '../features/matrix/MatrixScreen'
 import { ThemePicker } from '../features/gamification/ThemePicker'
@@ -13,16 +13,18 @@ import { useStats } from '../features/gamification/useStats'
 import { useTheme } from '../features/gamification/useTheme'
 import { RewardDropProvider } from '../features/rewards/RewardDropProvider'
 import { RewardsScreen } from '../features/rewards/RewardsScreen'
-import { SoundToggle } from '../features/settings/SoundToggle'
+import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { TaskList } from '../features/tasks/TaskList'
-import { supabase } from '../sync/supabase'
+import { WhatsNewCard } from '../features/whatsnew/WhatsNewCard'
 import { startSyncTriggers } from '../sync/sync'
 
 const VIEWS = [
   { id: 'tasks', label: 'Tasks' },
   { id: 'matrix', label: 'Matrix' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'facts', label: 'Facts' },
   { id: 'themes', label: 'Themes' },
+  { id: 'settings', label: 'Settings' },
 ] as const
 
 type ViewId = (typeof VIEWS)[number]['id']
@@ -64,7 +66,7 @@ export function Shell({ session }: { session: Session }) {
         <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
           <header className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <h1 className="font-display text-lg tracking-[0.14em] text-ink-strong">SKUNKWORKS</h1>
-            <nav aria-label="Sections" className="flex gap-1">
+            <nav aria-label="Sections" className="flex flex-wrap justify-end gap-1">
               {VIEWS.map((v) => (
                 <button
                   key={v.id}
@@ -83,26 +85,17 @@ export function Shell({ session }: { session: Session }) {
             </nav>
           </header>
           <XpBar />
+          <WhatsNewCard />
           {view === 'tasks' && <CaptureBar />}
           <main className="flex-1">
             {view === 'tasks' && <TaskList />}
             {view === 'matrix' && <MatrixScreen />}
             {view === 'rewards' && <RewardsScreen />}
+            {view === 'facts' && <FactsCollection />}
             {view === 'themes' && <ThemePicker />}
+            {view === 'settings' && <SettingsScreen email={session.user.email ?? ''} />}
           </main>
           <InstallHint />
-          <footer className="flex items-center justify-center gap-3 p-2 text-xs text-ink-muted">
-            <span>Signed in as {session.user.email}</span>
-            <SoundToggle />
-            <ExportButton />
-            <button
-              type="button"
-              onClick={() => void supabase.auth.signOut()}
-              className="underline-offset-2 hover:underline"
-            >
-              Sign out
-            </button>
-          </footer>
         </div>
       </RewardDropProvider>
     </FactRevealProvider>

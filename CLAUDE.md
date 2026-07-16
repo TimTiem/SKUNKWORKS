@@ -285,8 +285,11 @@ Forgiving **streaks** (days-active-of-7 + grace, milestones 7/30/66/100, comebac
 
 > **Streaks are held back on purpose.** A broken streak triggers the abstinence-violation effect ("what's the point now") → abandonment — the single most documented gamification failure mode, amplified for ADHD. A streak shipped even slightly wrong makes the app *actively worse*. It ships ~2 weeks after the core is proven un-abandonable, and only in the forgiving form.
 
-### Later — parked, do NOT build without an explicit ask
-Estimate-vs-actual loop · fact collection view · JSON import · "What's new" screen · Realtime push · feature flags/kill switch · hard-purge maintenance.
+### Built later-adds (2026-07-16, v1.5.0 — Tim's ask)
+Estimate-vs-actual / "time sense" (FR-17) · fact collection view (FR-45) · JSON import (FR-57) · "What's new" card (FR-59) · Settings screen w/ version + Sync now (FR-58) · optional task note/tag/estimate (FR-11) · OS quick-capture share_target + shortcut (FR-06).
+
+### Still parked — do NOT build without an explicit ask
+Realtime push (NFR-15) · feature flags/kill switch (NFR-20b) · compatibility floor (NFR-20a) · hard-purge maintenance · encouraging notifications (FR-51/52, needs push infra).
 
 ---
 
