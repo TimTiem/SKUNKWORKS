@@ -5,8 +5,8 @@
  *  - SKUNKWORKS is DARK-ONLY (Tim's call, 2026-07-15: "dark backgrounds,
  *    military, sleek"). One PURE-BLACK chassis is shared by every theme
  *    (2026-07-16); themes swap the accent/timer/XP colors only, and those
- *    accents are deliberately VIBRANT so they pop on the black ground. `ops`
- *    (tactical amber) is the default; the rest unlock at milestone levels.
+ *    accents are deliberately VIBRANT so they pop on the black ground. `ember`
+ *    (deep red) is the default; the rest unlock at milestone levels.
  *  - `cssVariables()` flattens a palette into CSS custom properties; a small
  *    Tailwind plugin in `tailwind.config.ts` injects them, so components only
  *    ever speak semantic names (`bg-surface-raised`, `text-ink-muted`, …)
@@ -76,8 +76,8 @@ const CHASSIS = {
 /**
  * Unlockable themes (Wave 2 cosmetics, P7): accent + timer + XP color swaps
  * on the shared chassis, derived from level — nothing to store or manage.
- * `ops` is the default (level 1); `nebula` (the old default) stays a level-1
- * choice so nothing Tim had is taken away (P4 in spirit).
+ * `ember` (deep red) is the default (Tim, 2026-07-16); `ops` and `nebula`
+ * stay level-1 choices too, so nothing Tim had is taken away (P4 in spirit).
  */
 export interface ThemeMeta {
   id: string
@@ -87,16 +87,19 @@ export interface ThemeMeta {
 
 // Display names can change freely; the `id` is the stored pref key and must
 // never change (renaming an id would silently reset a user's chosen theme).
+// The default (`ember`) leads the list; the other two level-1 themes follow,
+// then the milestone unlocks. (No theme currently unlocks at level 5 — ember,
+// which used to, is now the freebie.)
 export const THEMES: readonly ThemeMeta[] = [
+  { id: 'ember', name: 'Ember', unlockLevel: 1 },
   { id: 'ops', name: 'Night Ops', unlockLevel: 1 },
   { id: 'nebula', name: 'Nebula', unlockLevel: 1 },
   { id: 'meadow', name: 'Meadow', unlockLevel: 3 },
-  { id: 'ember', name: 'Ember', unlockLevel: 5 },
   { id: 'tide', name: 'Manta', unlockLevel: 8 },
   { id: 'slate', name: 'Fuchsia', unlockLevel: 12 },
 ]
 
-export const DEFAULT_THEME = 'ops'
+export const DEFAULT_THEME = 'ember'
 
 interface AccentSpec {
   base: string

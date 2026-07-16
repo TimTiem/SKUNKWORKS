@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { isThemeUnlocked, themeStates, themeUnlockedAtLevel } from './themes'
 
 describe('theme unlocks (derived from level)', () => {
-  it('only the level-1 themes (ops default + nebula) are unlocked at level 1', () => {
+  it('only the level-1 themes (ember default, ops, nebula) are unlocked at level 1', () => {
     const states = themeStates(1)
+    expect(states.find((t) => t.id === 'ember')?.unlocked).toBe(true)
     expect(states.find((t) => t.id === 'ops')?.unlocked).toBe(true)
     expect(states.find((t) => t.id === 'nebula')?.unlocked).toBe(true)
-    expect(states.filter((t) => t.unlocked)).toHaveLength(2)
+    expect(states.filter((t) => t.unlocked)).toHaveLength(3)
   })
 
   it('unlocks more themes as level climbs, and never re-locks', () => {
@@ -19,9 +20,9 @@ describe('theme unlocks (derived from level)', () => {
   })
 
   it('reports how many levels away a locked theme is (anticipation, P6)', () => {
-    const ember = themeStates(3).find((t) => t.id === 'ember')
-    expect(ember?.unlocked).toBe(false)
-    expect(ember?.levelsAway).toBe(2) // ember unlocks at 5
+    const tide = themeStates(3).find((t) => t.id === 'tide')
+    expect(tide?.unlocked).toBe(false)
+    expect(tide?.levelsAway).toBe(5) // Manta (tide) unlocks at 8
   })
 
   it('isThemeUnlocked gates correctly', () => {
@@ -31,7 +32,7 @@ describe('theme unlocks (derived from level)', () => {
   })
 
   it('names the theme a milestone level just unlocked', () => {
-    expect(themeUnlockedAtLevel(5)?.id).toBe('ember')
-    expect(themeUnlockedAtLevel(4)).toBeUndefined()
+    expect(themeUnlockedAtLevel(3)?.id).toBe('meadow')
+    expect(themeUnlockedAtLevel(4)).toBeUndefined() // nothing unlocks at 4 (or 5)
   })
 })

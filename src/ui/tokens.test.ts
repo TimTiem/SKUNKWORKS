@@ -42,8 +42,8 @@ describe('design tokens', () => {
     }
   })
 
-  it('the default theme is ops and it exists', () => {
-    expect(DEFAULT_THEME).toBe('ops')
+  it('the default theme is ember and it is unlocked from level 1', () => {
+    expect(DEFAULT_THEME).toBe('ember')
     expect(THEMES.some((t) => t.id === DEFAULT_THEME && t.unlockLevel === 1)).toBe(true)
   })
 
