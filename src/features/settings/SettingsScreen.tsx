@@ -2,8 +2,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState, type ReactNode } from 'react'
 import { db } from '../../db/db'
 import { META_KEYS } from '../../db/meta'
-import { focusTimeSense, tendencyLabel } from '../../domain/timeSense'
-import { formatDurationMs } from '../../lib/time'
 import { APP_VERSION } from '../../lib/version'
 import { supabase } from '../../sync/supabase'
 import { syncNow } from '../../sync/sync'
@@ -11,6 +9,7 @@ import { Button } from '../../ui/primitives/Button'
 import { ExportButton } from '../export/ExportButton'
 import { ImportButton } from './ImportButton'
 import { SoundToggle } from './SoundToggle'
+import { StatsPanel } from './StatsPanel'
 
 /** One consistent settings surface (FR-58): sync, feedback, data, time sense,
  *  version, and account — all the quiet controls in one calm place. */
@@ -19,8 +18,6 @@ export function SettingsScreen({ email }: { email: string }) {
     async () => (await db.meta.get(META_KEYS.schemaVersion))?.value ?? null,
     [],
   )
-  const sessions = useLiveQuery(() => db.focus_sessions.toArray(), [])
-  const ts = focusTimeSense(sessions ?? [])
 
   const [sync, setSync] = useState<'idle' | 'syncing' | 'done'>('idle')
   async function doSync() {
@@ -38,6 +35,10 @@ export function SettingsScreen({ email }: { email: string }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <Section title="Statistics">
+        <StatsPanel />
+      </Section>
+
       <Section title="Sync">
         <p className="text-sm text-ink-muted">
           {online ? 'Online — changes sync in the background.' : 'Offline — changes are saved here and sync when you reconnect.'}
@@ -66,16 +67,6 @@ export function SettingsScreen({ email }: { email: string }) {
         <p className="text-xs text-ink-muted">
           Export is your backup; import merges one back in. Both are fully offline.
         </p>
-      </Section>
-
-      <Section title="Time sense">
-        <p className="text-sm text-ink-base">{tendencyLabel(ts.ratio)}</p>
-        {ts.count > 0 && (
-          <p className="text-xs text-ink-muted">
-            {ts.count} focus {ts.count === 1 ? 'session' : 'sessions'} · planned{' '}
-            {formatDurationMs(ts.totalPlannedMs)} · focused {formatDurationMs(ts.totalActualMs)}
-          </p>
-        )}
       </Section>
 
       <Section title="About">

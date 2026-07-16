@@ -10,6 +10,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    version: '1.5.1',
+    items: [
+      'A full Statistics panel in Settings — lifetime tallies, focus, recent activity, and facts by category.',
+    ],
+  },
+  {
     version: '1.5.0',
     items: [
       'Facts you unlock now collect into a Facts tab.',
