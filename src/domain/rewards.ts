@@ -56,14 +56,24 @@ export function withRewardDeleted(reward: RewardRow, nowIso: string): RewardRow 
   return { ...reward, deleted_at: nowIso, updated_at: nowIso, dirty: 1 }
 }
 
-/** Snapshot the name/cost at redemption time — later edits can't rewrite history. */
-export function buildRedemption(reward: RewardRow, id: string, nowIso: string): RedemptionRow {
+/**
+ * Snapshot the name/cost at redemption time — later edits can't rewrite
+ * history. `coinsSpent` defaults to the reward's cost (a normal redemption);
+ * a free-reward drop passes 0 and appends no coin_ledger spend, so the balance
+ * is never touched (purely additive, P4/P8).
+ */
+export function buildRedemption(
+  reward: RewardRow,
+  id: string,
+  nowIso: string,
+  coinsSpent: number = reward.coin_cost,
+): RedemptionRow {
   return {
     id,
     user_id: null,
     reward_id: reward.id,
     reward_name_snapshot: reward.name,
-    coins_spent: reward.coin_cost,
+    coins_spent: coinsSpent,
     at: nowIso,
     created_at: nowIso,
     updated_at: nowIso,

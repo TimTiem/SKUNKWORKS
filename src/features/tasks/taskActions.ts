@@ -12,6 +12,7 @@ import { completionRewards, rollCritMultiplier } from '../../domain/xp'
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
 import { requestSync } from '../../sync/sync'
+import { feedbackComplete, feedbackCrit } from '../../ui/feedback'
 import type { TaskLinkRow, TaskRow } from '../../types/rows'
 
 /**
@@ -59,7 +60,9 @@ export async function completeTask(task: TaskRow): Promise<void> {
     await db.completions.add(completion)
     await db.coin_ledger.add(coinEarn)
   })
-  navigator.vibrate?.(15) // haptic where the platform has it (P1)
+  // Instant sound + haptic on the tap (P1); a crit gets the brighter cue.
+  if (completion.multiplier > 1) feedbackCrit()
+  else feedbackComplete()
   requestSync()
 }
 

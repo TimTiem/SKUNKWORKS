@@ -8,6 +8,8 @@ export const META_KEYS = {
   endowedApplied: 'endowed_applied',
   /** Device-local in-progress focus session (survives reload/lock). */
   activeFocus: 'active_focus',
+  /** Device-local: are completion/reward feedback sounds on? Default true. */
+  soundEnabled: 'sound_enabled',
 } as const
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {

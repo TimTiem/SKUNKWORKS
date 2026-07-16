@@ -3,9 +3,10 @@
  *
  * Structure:
  *  - SKUNKWORKS is DARK-ONLY (Tim's call, 2026-07-15: "dark backgrounds,
- *    military, sleek"). One near-black chassis is shared by every theme;
- *    themes swap the accent/timer/XP colors only. `ops` (gunmetal + tactical
- *    amber) is the default; the rest unlock at milestone levels (Wave 2).
+ *    military, sleek"). One PURE-BLACK chassis is shared by every theme
+ *    (2026-07-16); themes swap the accent/timer/XP colors only, and those
+ *    accents are deliberately VIBRANT so they pop on the black ground. `ops`
+ *    (tactical amber) is the default; the rest unlock at milestone levels.
  *  - `cssVariables()` flattens a palette into CSS custom properties; a small
  *    Tailwind plugin in `tailwind.config.ts` injects them, so components only
  *    ever speak semantic names (`bg-surface-raised`, `text-ink-muted`, …)
@@ -56,11 +57,13 @@ export interface Palette {
 }
 
 /**
- * The shared chassis: near-black gunmetal, crisp ink, deep shadows. Every
+ * The shared chassis: PURE-BLACK ground (Tim, 2026-07-16), crisp ink, deep
+ * shadows. The background is true #000000 (OLED-black on phones — vivid accents
+ * pop hardest against it); raised/overlay lift cards just enough to read. Every
  * theme rides on this — only accents differ (see ACCENTS below).
  */
 const CHASSIS = {
-  surface: { base: '#08090C', raised: '#0E1014', overlay: '#161A21' },
+  surface: { base: '#000000', raised: '#0E1014', overlay: '#171B23' },
   ink: { strong: '#EEF1F4', base: '#B9BFC9', muted: '#7B8290' },
   coin: '#F5B84B',
   success: '#4ADE80',
@@ -82,13 +85,15 @@ export interface ThemeMeta {
   unlockLevel: number
 }
 
+// Display names can change freely; the `id` is the stored pref key and must
+// never change (renaming an id would silently reset a user's chosen theme).
 export const THEMES: readonly ThemeMeta[] = [
   { id: 'ops', name: 'Night Ops', unlockLevel: 1 },
   { id: 'nebula', name: 'Nebula', unlockLevel: 1 },
   { id: 'meadow', name: 'Meadow', unlockLevel: 3 },
   { id: 'ember', name: 'Ember', unlockLevel: 5 },
-  { id: 'tide', name: 'Tide', unlockLevel: 8 },
-  { id: 'slate', name: 'Slate', unlockLevel: 12 },
+  { id: 'tide', name: 'Manta', unlockLevel: 8 },
+  { id: 'slate', name: 'Fuchsia', unlockLevel: 12 },
 ]
 
 export const DEFAULT_THEME = 'ops'
@@ -102,14 +107,25 @@ interface AccentSpec {
   ink: string
 }
 
+// Vibrant, high-chroma accents (Tim, 2026-07-16: "very vibrant — manta blue, a
+// very deep red"). `base` is the hero color (XP bar, borders, glows — no small
+// text sits on it, so it can run bright); `soft` is a light tint that reads as
+// text on the black ground; `strong` is a deep shade used as a FILL under
+// `ink` text (buttons, pops) — kept dark enough that `ink` clears AA. Amber and
+// emerald take dark ink; the deep hues take white.
 const ACCENTS: Record<string, AccentSpec> = {
-  // Tactical HUD amber on gunmetal — the military default.
-  ops: { base: '#F5A524', soft: '#FFC55C', strong: '#C57F00', focus: '#38BDF8', ink: '#151002' },
-  nebula: { base: '#7C6CF6', soft: '#A99DF9', strong: '#5B48E8', focus: '#38BDF8', ink: '#FFFFFF' },
-  meadow: { base: '#4ADE80', soft: '#86EFAC', strong: '#22A24E', focus: '#38BDF8', ink: '#FFFFFF' },
-  ember: { base: '#FB923C', soft: '#FDBA74', strong: '#E4632A', focus: '#F5B84B', ink: '#FFFFFF' },
-  tide: { base: '#38BDF8', soft: '#7DD3FC', strong: '#0C93D6', focus: '#4ADE80', ink: '#FFFFFF' },
-  slate: { base: '#94A3B8', soft: '#CBD5E1', strong: '#64748B', focus: '#A99DF9', ink: '#FFFFFF' },
+  // Electric tactical amber — the military default, punchier than before.
+  ops: { base: '#FF9F1A', soft: '#FFC65C', strong: '#C77800', focus: '#00C2FF', ink: '#1A0F00' },
+  // Electric violet.
+  nebula: { base: '#8B5CFF', soft: '#C4A6FF', strong: '#6425E0', focus: '#22E0A0', ink: '#FFFFFF' },
+  // Vivid emerald.
+  meadow: { base: '#12E06B', soft: '#7BF3AB', strong: '#0A9E4A', focus: '#FF9F1A', ink: '#03170C' },
+  // A very deep, vivid red (Tim's ask).
+  ember: { base: '#FF2740', soft: '#FF8A97', strong: '#B00020', focus: '#00C2FF', ink: '#FFFFFF' },
+  // Manta blue — electric cyan-blue.
+  tide: { base: '#00B4FF', soft: '#7BDCFF', strong: '#0072CC', focus: '#FF9F1A', ink: '#FFFFFF' },
+  // Vivid fuchsia.
+  slate: { base: '#FF2E9A', soft: '#FF87C4', strong: '#C10E6E', focus: '#00E0FF', ink: '#FFFFFF' },
 }
 
 /** Build a theme palette: shared chassis + swapped accent/xp/focus. */

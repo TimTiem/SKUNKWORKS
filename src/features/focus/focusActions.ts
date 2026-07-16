@@ -7,6 +7,7 @@ import { rollCritMultiplier } from '../../domain/xp'
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
 import { requestSync } from '../../sync/sync'
+import { feedbackComplete, feedbackCrit } from '../../ui/feedback'
 import { matrixRewards } from '../tasks/taskActions'
 import type { TaskRow } from '../../types/rows'
 
@@ -56,7 +57,8 @@ export async function completeFocus(focus: ActiveFocus, task: TaskRow): Promise<
       await db.meta.delete(META_KEYS.activeFocus)
     },
   )
-  navigator.vibrate?.(15)
+  if (completion.multiplier > 1) feedbackCrit()
+  else feedbackComplete()
   requestSync()
 }
 

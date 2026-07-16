@@ -11,6 +11,7 @@ import {
 import type { TaskRow } from '../../types/rows'
 import { Button } from '../../ui/primitives/Button'
 import { useFactReveal } from '../facts/factRevealContext'
+import { useRewardDrop } from '../rewards/rewardDropContext'
 import { FocusRing } from './FocusRing'
 import { completeFocus, endFocus, setFocusDuration } from './focusActions'
 
@@ -22,6 +23,7 @@ import { completeFocus, endFocus, setFocusDuration } from './focusActions'
 export function FocusScreen({ focus, task }: { focus: ActiveFocus; task: TaskRow | null }) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const revealFact = useFactReveal()
+  const rollDrop = useRewardDrop()
 
   useEffect(() => {
     const tick = () => setNowMs(Date.now())
@@ -77,7 +79,14 @@ export function FocusScreen({ focus, task }: { focus: ActiveFocus; task: TaskRow
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         {completable && task && (
-          <Button onClick={() => void completeFocus(focus, task).then(revealFact)}>
+          <Button
+            onClick={() =>
+              void completeFocus(focus, task).then(() => {
+                revealFact()
+                rollDrop()
+              })
+            }
+          >
             Done — complete task
           </Button>
         )}

@@ -11,6 +11,7 @@ import {
 import { nowISO } from '../../lib/time'
 import { newId } from '../../lib/uuid'
 import { requestSync } from '../../sync/sync'
+import { feedbackRedeem } from '../../ui/feedback'
 import type { RewardRow } from '../../types/rows'
 
 export async function addReward(input: RewardInput): Promise<void> {
@@ -51,7 +52,7 @@ export async function redeemReward(reward: RewardRow): Promise<boolean> {
   })
 
   if (redeemed) {
-    navigator.vibrate?.(15)
+    feedbackRedeem()
     requestSync()
   }
   return redeemed

@@ -138,6 +138,7 @@ Two surfaces must stay compatible: the **local IndexedDB schema** and the **Supa
 | Complete a task | +25 at matrix centre (position prices 10–40) | +12 |
 | Complete from a focus session | above + 15 bonus (centre = +40) | +17 (12 + 5) |
 | Surprise crit (v1.1, ~10% roll) | 2× the above | — |
+| Free-reward drop (2026-07-16, ~8% roll) | — | — (gifts a small-tier reward FREE — a `redemptions` row with `coins_spent 0` and NO ledger spend; purely additive, never touches the balance) |
 
 - **Endowed start:** new account seeded with **25 XP** (Level 1, bar ~42% toward Level 2). Bars **never render empty**.
 - **Facts:** ~**17% (≈1-in-6)** completions yield an **unseen** fact. When the pool is exhausted, stop surfacing gracefully — never re-show, never reuse an ID.
@@ -233,7 +234,8 @@ Keep `domain/` free of React and IO — pure functions in, values out. That is w
 
 - A **documented design-token layer**: colors, type scale, spacing, radii, shadows, motion durations/easings — authored in `ui/tokens.ts` and mirrored into `tailwind.config`. **Cohesive, not templated.**
 - A small **motion vocabulary** (`enter` / `exit` / `celebrate`) reused consistently; **varied** celebration animations to fight novelty decay (celebration is not a single repeated GIF).
-- **Dark-only** (Tim's call, 2026-07-15 — "dark backgrounds, military, sleek"): one near-black chassis, no `prefers-color-scheme` split. Default theme is `ops` (gunmetal + tactical amber); unlockable themes at milestone levels swap accents only. Display font Black Ops One + UI font Rajdhani, bundled in `src/assets/fonts` (offline-first, no font CDN).
+- **Dark-only** (Tim's call, 2026-07-15 — "dark backgrounds, military, sleek"): one **pure-black** (`#000000`) chassis (2026-07-16 — OLED-black, no `prefers-color-scheme` split). Default theme is `ops` (tactical amber); unlockable themes at milestone levels swap accents only, and those accents are deliberately **vibrant/high-chroma** (manta blue, deep red, electric violet…) so they pop on the black ground (Tim, 2026-07-16). Display font Black Ops One + UI font Rajdhani, bundled in `src/assets/fonts` (offline-first, no font CDN).
+- **Completion & reward feedback** (`src/ui/feedback.ts`): every completion/redeem fires an instant short synth tone (Web Audio, no bundled asset) + a haptic pulse — the ADHD dopamine hit, sub-350ms, never a jingle. Tiers: everyday complete / 2× crit / redeem / free-drop each get their own cue. Sound honors a device-local `sound_enabled` mute (footer toggle); haptics fire where the platform allows. Must be triggered from the tap gesture (iOS audio unlock).
 - **All motion honors `prefers-reduced-motion`** with a static/non-motion fallback. This is **non-negotiable and part of MVP**, not a polish item.
 - Consult the frontend-design skill when authoring the visual system in Phase 5.
 

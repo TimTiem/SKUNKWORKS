@@ -4,6 +4,7 @@ import { dueLabel } from '../../lib/time'
 import type { TaskLinkRow, TaskRow } from '../../types/rows'
 import { useFactReveal } from '../facts/factRevealContext'
 import { startFocus } from '../focus/focusActions'
+import { useRewardDrop } from '../rewards/rewardDropContext'
 import { TaskDetail } from './TaskDetail'
 import { completeTask, deferTask, softDeleteTask } from './taskActions'
 
@@ -22,6 +23,7 @@ export interface TaskTreeMaps {
  */
 export function TaskItem({ task, tree }: { task: TaskRow; tree: TaskTreeMaps }) {
   const revealFact = useFactReveal()
+  const rollDrop = useRewardDrop()
   const [expanded, setExpanded] = useState(false)
   const nowMs = useNow()
 
@@ -34,7 +36,12 @@ export function TaskItem({ task, tree }: { task: TaskRow; tree: TaskTreeMaps }) 
         <button
           type="button"
           aria-label={`Complete "${task.text}"`}
-          onClick={() => void completeTask(task).then(revealFact)}
+          onClick={() =>
+            void completeTask(task).then(() => {
+              revealFact()
+              rollDrop()
+            })
+          }
           className="group grid size-11 shrink-0 place-items-center"
         >
           <span className="grid size-6 place-items-center rounded-pill border-2 border-ink-muted transition-colors duration-enter ease-standard group-hover:border-success">
