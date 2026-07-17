@@ -10,6 +10,15 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    version: '1.6.0',
+    items: [
+      'A new Stats tab: your momentum, weekly rhythm, focus, and a 12-week activity map.',
+      'The matrix now grows to fill big and ultrawide screens.',
+      'Tasks show a tooltip with their full text — readable even on a busy board.',
+      'Quiet lines link a task to whatever it’s waiting on.',
+    ],
+  },
+  {
     version: '1.5.1',
     items: [
       'A full Statistics panel in Settings — lifetime tallies, focus, recent activity, and facts by category.',

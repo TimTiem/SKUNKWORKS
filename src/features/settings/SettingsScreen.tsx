@@ -9,7 +9,6 @@ import { Button } from '../../ui/primitives/Button'
 import { ExportButton } from '../export/ExportButton'
 import { ImportButton } from './ImportButton'
 import { SoundToggle } from './SoundToggle'
-import { StatsPanel } from './StatsPanel'
 
 /** One consistent settings surface (FR-58): sync, feedback, data, time sense,
  *  version, and account — all the quiet controls in one calm place. */
@@ -35,10 +34,6 @@ export function SettingsScreen({ email }: { email: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Section title="Statistics">
-        <StatsPanel />
-      </Section>
-
       <Section title="Sync">
         <p className="text-sm text-ink-muted">
           {online ? 'Online — changes sync in the background.' : 'Offline — changes are saved here and sync when you reconnect.'}

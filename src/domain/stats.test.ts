@@ -6,7 +6,7 @@ import type {
   RedemptionRow,
   TaskRow,
 } from '../types/rows'
-import { computeAppStats } from './stats'
+import { computeAppStats, dailyActivity, startOfLocalDay, weekdayRhythm } from './stats'
 
 const NOW = new Date('2026-07-16T12:00:00.000Z').getTime()
 const daysAgo = (n: number) => new Date(NOW - n * 86_400_000).toISOString()
@@ -155,5 +155,63 @@ describe('computeAppStats', () => {
     expect(s.focusMsTotal).toBe(50 * 60_000)
     expect(s.avgFocusMs).toBe(25 * 60_000)
     expect(s.openTasks).toBe(2)
+  })
+})
+
+// Local-day charts. Build timestamps from LOCAL calendar parts so these assert
+// the same way in any timezone (no UTC-vs-local drift at the day boundary).
+const atLocal = (y: number, m: number, d: number, h = 12) =>
+  new Date(y, m - 1, d, h).toISOString()
+const NOW_LOCAL = new Date(2026, 6, 16, 12).getTime() // 2026-07-16, local noon
+
+describe('dailyActivity', () => {
+  it('returns one bucket per day, oldest first, including empty days', () => {
+    const buckets = dailyActivity([], NOW_LOCAL, 7)
+    expect(buckets).toHaveLength(7)
+    expect(buckets.every((b) => b.completions === 0 && b.xp === 0)).toBe(true)
+    // Oldest first, last bucket is today.
+    expect(buckets[6].dayMs).toBe(startOfLocalDay(NOW_LOCAL))
+    for (let i = 1; i < buckets.length; i++) {
+      expect(buckets[i].dayMs).toBeGreaterThan(buckets[i - 1].dayMs)
+    }
+  })
+
+  it('buckets completions into their local day and sums XP', () => {
+    const buckets = dailyActivity(
+      [
+        completion({ completed_at: atLocal(2026, 7, 16, 9), xp_awarded: 25 }), // today
+        completion({ completed_at: atLocal(2026, 7, 16, 20), xp_awarded: 40 }), // today
+        completion({ completed_at: atLocal(2026, 7, 14, 10), xp_awarded: 30 }), // 2 days ago
+        completion({ completed_at: atLocal(2026, 7, 1, 10), xp_awarded: 99 }), // outside window
+        completion({ completed_at: atLocal(2026, 7, 15), deleted_at: 'x' }), // tombstoned
+      ],
+      NOW_LOCAL,
+      7,
+    )
+    const today = buckets[6]
+    expect(today.completions).toBe(2)
+    expect(today.xp).toBe(65)
+    const twoAgo = buckets.find((b) => b.dayMs === startOfLocalDay(new Date(2026, 6, 14).getTime()))
+    expect(twoAgo?.completions).toBe(1)
+    expect(twoAgo?.xp).toBe(30)
+    // Nothing leaked from the out-of-window or tombstoned rows.
+    expect(buckets.reduce((n, b) => n + b.completions, 0)).toBe(3)
+  })
+})
+
+describe('weekdayRhythm', () => {
+  it('groups completions by day of week and ignores tombstones', () => {
+    const rhythm = weekdayRhythm([
+      completion({ completed_at: atLocal(2026, 7, 16, 10) }), // Thursday (getDay 4)
+      completion({ completed_at: atLocal(2026, 7, 16, 14), xp_awarded: 40 }),
+      completion({ completed_at: atLocal(2026, 7, 13, 10) }), // Monday (getDay 1)
+      completion({ completed_at: atLocal(2026, 7, 13, 10), deleted_at: 'x' }),
+    ])
+    expect(rhythm).toHaveLength(7)
+    const thursday = rhythm[new Date(2026, 6, 16).getDay()]
+    expect(thursday.completions).toBe(2)
+    const monday = rhythm[new Date(2026, 6, 13).getDay()]
+    expect(monday.completions).toBe(1)
+    expect(rhythm.reduce((n, b) => n + b.completions, 0)).toBe(3)
   })
 })

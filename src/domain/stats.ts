@@ -43,6 +43,76 @@ function within(iso: string, nowMs: number, days: number): boolean {
   return new Date(iso).getTime() >= nowMs - days * DAY_MS
 }
 
+/** Local calendar midnight (ms) for a timestamp — the app is single-user, so
+ * "today" means the user's device day, not UTC. */
+export function startOfLocalDay(ms: number): number {
+  const d = new Date(ms)
+  d.setHours(0, 0, 0, 0)
+  return d.getTime()
+}
+
+export interface DayBucket {
+  /** Local start-of-day (ms) — a stable key across DST (both sides normalize). */
+  dayMs: number
+  completions: number
+  xp: number
+}
+
+/**
+ * Completions + XP bucketed into the last `days` local calendar days, oldest
+ * first, INCLUDING empty days (so a chart renders a continuous timeline, never
+ * a gappy one). Days are walked by calendar date, so a DST shift never drops or
+ * doubles a day. Pure — the productivity charts read straight from this.
+ */
+export function dailyActivity(
+  completions: readonly CompletionRow[],
+  nowMs: number,
+  days: number,
+): DayBucket[] {
+  const buckets: DayBucket[] = []
+  const byDay = new Map<number, DayBucket>()
+  const cursor = new Date(startOfLocalDay(nowMs))
+  cursor.setDate(cursor.getDate() - (days - 1))
+  for (let i = 0; i < days; i++) {
+    const bucket: DayBucket = { dayMs: startOfLocalDay(cursor.getTime()), completions: 0, xp: 0 }
+    buckets.push(bucket)
+    byDay.set(bucket.dayMs, bucket)
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  for (const c of completions) {
+    if (c.deleted_at !== null) continue
+    const bucket = byDay.get(startOfLocalDay(new Date(c.completed_at).getTime()))
+    if (!bucket) continue
+    bucket.completions++
+    bucket.xp += c.xp_awarded
+  }
+  return buckets
+}
+
+export interface WeekdayBucket {
+  /** 0 = Sunday … 6 = Saturday (JS getDay). */
+  weekday: number
+  completions: number
+  xp: number
+}
+
+/** Lifetime completions grouped by day-of-week — surfaces the user's natural
+ * rhythm ("your strongest day"), a productivity insight, never a target. */
+export function weekdayRhythm(completions: readonly CompletionRow[]): WeekdayBucket[] {
+  const buckets: WeekdayBucket[] = Array.from({ length: 7 }, (_, weekday) => ({
+    weekday,
+    completions: 0,
+    xp: 0,
+  }))
+  for (const c of completions) {
+    if (c.deleted_at !== null) continue
+    const bucket = buckets[new Date(c.completed_at).getDay()]
+    bucket.completions++
+    bucket.xp += c.xp_awarded
+  }
+  return buckets
+}
+
 export function computeAppStats(args: {
   completions: readonly CompletionRow[]
   ledger: readonly CoinLedgerRow[]

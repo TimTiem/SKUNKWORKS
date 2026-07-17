@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '../../db/db'
+import { newTaskLink } from '../../domain/priority'
 import { newTask } from '../../domain/tasks'
 import { MatrixScreen } from './MatrixScreen'
 import { pointToPosition } from './matrixMath'
@@ -111,5 +112,42 @@ describe('matrix screen', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: /move "priced task"/i }))
     expect(screen.getByRole('status').textContent).toContain('worth 40 XP')
+  })
+
+  it('reveals the full task text in a tooltip on focus (readable on a crowded board)', async () => {
+    await seedTask('Polish the changelog')
+    render(<MatrixScreen />)
+    const chip = await screen.findByRole('button', { name: /move "polish the changelog"/i })
+
+    // Just the chip label before focus…
+    expect(screen.getAllByText('Polish the changelog')).toHaveLength(1)
+    fireEvent.focus(chip)
+    // …plus the tooltip copy once focused.
+    expect(screen.getAllByText('Polish the changelog')).toHaveLength(2)
+  })
+
+  it('draws a quiet dependency line between a task and what it waits on', async () => {
+    const blocker = await seedTask('Design mockups')
+    const blocked = await seedTask('Build the screen')
+    await db.task_links.add(newTaskLink(blocked.id, blocker.id, crypto.randomUUID(), T0))
+    render(<MatrixScreen />)
+
+    const surface = await screen.findByRole('application', { name: /eisenhower matrix/i })
+    // A <line> is drawn inside the matrix surface (the reticle/grid use divs).
+    await waitFor(() => expect(surface.querySelectorAll('line').length).toBeGreaterThanOrEqual(1))
+  })
+
+  it('names what the selected task is waiting on in the details rail', async () => {
+    const blocker = await seedTask('Design mockups')
+    const blocked = await seedTask('Build the screen')
+    await db.task_links.add(newTaskLink(blocked.id, blocker.id, crypto.randomUUID(), T0))
+    render(<MatrixScreen />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /move "build the screen"/i }))
+    expect(await screen.findByText(/^waiting on:/i)).toBeInTheDocument()
+    // The blocker's name shows in the rail, in addition to its own chip.
+    await waitFor(() =>
+      expect(screen.getAllByText('Design mockups').length).toBeGreaterThanOrEqual(2),
+    )
   })
 })
