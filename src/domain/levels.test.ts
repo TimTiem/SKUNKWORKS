@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { levelFromXp, levelProgress, titleForLevel, xpForLevel } from './levels'
+import { epitaphForLevel, levelFromXp, levelProgress, titleForLevel, xpForLevel } from './levels'
 import { ENDOWED_XP, totalXp } from './xp'
 
 describe('xpForLevel', () => {
@@ -57,7 +57,24 @@ describe('titleForLevel', () => {
     expect(new Set(titles).size).toBe(titles.length)
   })
 
-  it('falls back gracefully past the curated list', () => {
-    expect(titleForLevel(30)).toMatch(/^Legend \d+$/)
+  it('starts on the ember arc, not a generic rank', () => {
+    expect(titleForLevel(1)).toBe('Ashborn')
+  })
+
+  it('falls back gracefully past the curated arc, still distinct', () => {
+    expect(titleForLevel(30)).toMatch(/^Everburning \d+$/)
+    expect(titleForLevel(30)).not.toBe(titleForLevel(31))
+  })
+})
+
+describe('epitaphForLevel', () => {
+  it('gives every curated level a non-empty inscription', () => {
+    for (let level = 1; level <= 15; level++) {
+      expect(epitaphForLevel(level).length).toBeGreaterThan(0)
+    }
+  })
+
+  it('has an inscription past the curated arc', () => {
+    expect(epitaphForLevel(99).length).toBeGreaterThan(0)
   })
 })

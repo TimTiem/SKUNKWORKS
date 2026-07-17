@@ -40,7 +40,7 @@ describe('XpBar', () => {
 
   it('renders the endowed start — never an empty bar (P6)', async () => {
     render(<XpBar />)
-    expect(await screen.findByText(/lv 1 · recruit/i)).toBeInTheDocument()
+    expect(await screen.findByText(/lv 1 · ashborn/i)).toBeInTheDocument()
     expect(screen.getByText(/35 xp to lv 2/i)).toBeInTheDocument()
     expect(screen.getByText(/^25 XP$/)).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
@@ -84,7 +84,9 @@ describe('XpBar', () => {
     captureAndComplete('One more thing')
     fireEvent.click(await screen.findByRole('button', { name: /complete "one more thing"/i }))
 
-    expect(await screen.findByText(/lv 2 · spark/i)).toBeInTheDocument()
-    expect(await screen.findByText(/level 2 — spark!/i)).toBeInTheDocument()
+    expect(await screen.findByText(/lv 2 · ember-touched/i)).toBeInTheDocument()
+    // The level-up plate names the new rank and reveals its epitaph (the Souls beat).
+    expect(await screen.findByText(/level 2 · ember-touched/i)).toBeInTheDocument()
+    expect(await screen.findByText(/a faint warmth answers the dark/i)).toBeInTheDocument()
   })
 })

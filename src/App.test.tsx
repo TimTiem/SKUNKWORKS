@@ -10,7 +10,10 @@ vi.mock('./sync/supabase', () => {
     then: (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
       Promise.resolve({ data: [], error: null }).then(resolve, reject),
   }
-  for (const m of ['select', 'gt', 'order', 'limit', 'upsert']) chain[m] = () => chain
+  // Permissive: any builder method returns the same thenable chain. Covers the
+  // Shell's background sync AND Settings → Voice & Siri reading api_tokens.
+  for (const m of ['select', 'gt', 'order', 'limit', 'upsert', 'is', 'eq', 'insert', 'update'])
+    chain[m] = () => chain
   return {
     supabase: {
       from: vi.fn(() => chain),

@@ -53,24 +53,57 @@ export function levelProgress(totalXp: number): LevelProgress {
 }
 
 /**
- * Level titles — competence cues ("you're getting better at running your
- * life"), cosmetic only (P7). One per level, Wave 1 scope.
+ * Level titles + epitaphs — a Souls-flavoured rank on an ascending "rekindling"
+ * arc: a cold ember coaxed, level by level, into an unfading flame (the fire is
+ * momentum — the thing this app manufactures). Titles are competence cues,
+ * cosmetic only (P7). The tone borrows Dark Souls' *gravitas* — solemn, mythic,
+ * weathered — but never its cruelty: every line is ascendant and earned, never
+ * a death, failure, or shame state (P8). The flame only ever grows (P4).
+ *
+ * Each level carries a `title` (short, shown in the header/stats) and an
+ * `epitaph` (a one-line inscription, revealed at the level-up moment).
  */
-const TITLES = [
-  'Recruit',
-  'Spark',
-  'Mover',
-  'Doer',
-  'Momentum',
-  'Operator',
-  'Tactician',
-  'Finisher',
-  'Strategist',
-  'Veteran',
-  'Pathfinder',
-  'Vanguard',
+interface Rank {
+  title: string
+  epitaph: string
+}
+
+const RANKS: Rank[] = [
+  { title: 'Ashborn', epitaph: 'From cold ash, the first spark stirs.' },
+  { title: 'Ember-Touched', epitaph: 'A faint warmth answers the dark.' },
+  { title: 'Kindler', epitaph: 'You have learned to coax the flame.' },
+  { title: 'Flamebearer', epitaph: 'The fire walks where you walk.' },
+  { title: 'Emberwright', epitaph: 'You forge warmth from will alone.' },
+  { title: 'Ward of Cinders', epitaph: 'The dark keeps its distance now.' },
+  { title: 'Ashen Knight', epitaph: 'Tempered, unhurried, certain.' },
+  { title: 'Pyrekeeper', epitaph: 'Others warm themselves at your fire.' },
+  { title: 'Flamewright', epitaph: 'You bend the blaze to purpose.' },
+  { title: 'Cinderlord', epitaph: 'The long dark remembers your name.' },
+  { title: 'Ashen Sovereign', epitaph: 'Dominion, earned ember by ember.' },
+  { title: 'The Everburning', epitaph: 'A fire that has forgotten how to fade.' },
+  { title: 'Firstflame', epitaph: 'You are the warmth the world was named for.' },
+  { title: 'Undying Beacon', epitaph: 'Seen from every distant dark.' },
+  { title: 'Age of Fire', epitaph: 'History turns to your rekindling.' },
 ]
 
+/** Past the curated arc the flame is already eternal — grand, distinct, endless. */
+const OVERFLOW_TITLE = 'Everburning'
+const OVERFLOW_EPITAPH = 'The flame outlasts the counting of ages.'
+
+function rankForLevel(level: number): Rank {
+  return (
+    RANKS[level - 1] ?? {
+      title: `${OVERFLOW_TITLE} ${level - RANKS.length}`,
+      epitaph: OVERFLOW_EPITAPH,
+    }
+  )
+}
+
 export function titleForLevel(level: number): string {
-  return TITLES[level - 1] ?? `Legend ${level - TITLES.length}`
+  return rankForLevel(level).title
+}
+
+/** The one-line inscription for a level — revealed at the level-up moment. */
+export function epitaphForLevel(level: number): string {
+  return rankForLevel(level).epitaph
 }

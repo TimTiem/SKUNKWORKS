@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { CATEGORY_LABEL } from '../../content/facts/facts'
 import { db } from '../../db/db'
 import { collectFacts, collectionTotals } from '../../domain/factCollection'
-import { titleForLevel } from '../../domain/levels'
+import { epitaphForLevel, titleForLevel } from '../../domain/levels'
 import { computeAppStats, dailyActivity, weekdayRhythm } from '../../domain/stats'
 import { focusTimeSense, tendencyLabel } from '../../domain/timeSense'
 import { useNow } from '../../hooks/useNow'
@@ -72,6 +72,11 @@ export function StatsScreen() {
         <Tile label="Completed" value={s.totalCompletions.toLocaleString()} />
         <Tile label="Open now" value={String(s.openTasks)} />
       </div>
+
+      {/* The current rank's inscription — the Souls epitaph, a calm place to revisit it. */}
+      <p className="-mt-1 px-1 text-sm italic tracking-wide text-ink-muted">
+        “{epitaphForLevel(stats.level)}”
+      </p>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card title="Momentum" className="lg:col-span-2">

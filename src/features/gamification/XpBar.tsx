@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { db } from '../../db/db'
-import { titleForLevel } from '../../domain/levels'
+import { epitaphForLevel, titleForLevel } from '../../domain/levels'
 import { celebrationClass } from '../../ui/motion/celebrate'
 import { useStats } from './useStats'
 import { getLastSeenXp, setLastSeenXp } from './xpMemory'
@@ -15,6 +15,8 @@ export function XpBar() {
   const stats = useStats()
   const [pop, setPop] = useState<{
     text: string
+    /** Souls-flavoured inscription, revealed only on a level-up (P6 milestone). */
+    epitaph?: string
     level: boolean
     crit: boolean
     seq: number
@@ -29,10 +31,15 @@ export function XpBar() {
     if (!before) return
     // Reacting to the Dexie live-query store (an external system) is exactly
     // what an effect is for; the transient pop is derived from that change.
-    const push = (next: { text: string; level: boolean; crit: boolean }) =>
+    const push = (next: { text: string; epitaph?: string; level: boolean; crit: boolean }) =>
       setPop((p) => ({ ...next, seq: (p?.seq ?? 0) + 1 }))
     if (level > before.level) {
-      push({ text: `Level ${level} — ${titleForLevel(level)}!`, level: true, crit: false })
+      push({
+        text: `Level ${level} · ${titleForLevel(level)}`,
+        epitaph: epitaphForLevel(level),
+        level: true,
+        crit: false,
+      })
     } else if (xp > before.xp) {
       const gained = xp - before.xp
       // A crit deserves its own moment (variable reward, P6) — check whether
@@ -49,7 +56,8 @@ export function XpBar() {
 
   useEffect(() => {
     if (!pop) return
-    const timer = setTimeout(() => setPop(null), pop.level ? 2600 : pop.crit ? 2200 : 1400)
+    // A level-up reveals its epitaph — give it a beat longer to be read.
+    const timer = setTimeout(() => setPop(null), pop.level ? 4200 : pop.crit ? 2200 : 1400)
     return () => clearTimeout(timer)
   }, [pop])
 
@@ -89,23 +97,37 @@ export function XpBar() {
         </span>
       </div>
 
-      {pop && (
-        <p
-          key={pop.seq}
-          role="status"
-          className={`absolute -top-3 right-3 rounded-pill px-3 py-1 text-sm font-semibold shadow-pop ${
-            // Level-ups rotate the celebration set by level; a crit slams in
-            // like a stamp; everyday +XP pops stay the quick, consistent pop.
-            pop.level ? celebrationClass(stats.level) : pop.crit ? 'celebrate-stamp' : 'celebrate-pop'
-          } ${
-            pop.level || pop.crit
-              ? 'bg-accent-strong text-accent-ink'
-              : 'bg-surface-overlay text-accent-soft'
-          }`}
-        >
-          {pop.text}
-        </p>
-      )}
+      {pop &&
+        (pop.level ? (
+          // A level-up is the milestone moment (FR-27): a centred plate that
+          // names the new rank and reveals its epitaph — the Souls beat.
+          <div
+            key={pop.seq}
+            role="status"
+            className={`absolute inset-x-3 -top-3 mx-auto max-w-sm rounded-card bg-accent-strong px-4 py-2 text-center text-accent-ink shadow-pop ${celebrationClass(
+              stats.level,
+            )}`}
+          >
+            <p className="font-display text-sm tracking-wider">{pop.text}</p>
+            {pop.epitaph && (
+              <p className="mt-0.5 text-xs italic tracking-wide text-accent-ink/85">
+                {pop.epitaph}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p
+            key={pop.seq}
+            role="status"
+            className={`absolute -top-3 right-3 rounded-pill px-3 py-1 text-sm font-semibold shadow-pop ${
+              // A crit slams in like a stamp; everyday +XP pops stay the quick,
+              // consistent pop.
+              pop.crit ? 'celebrate-stamp bg-accent-strong text-accent-ink' : 'celebrate-pop bg-surface-overlay text-accent-soft'
+            }`}
+          >
+            {pop.text}
+          </p>
+        ))}
     </section>
   )
 }

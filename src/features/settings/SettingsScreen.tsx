@@ -8,6 +8,7 @@ import { syncNow } from '../../sync/sync'
 import { Button } from '../../ui/primitives/Button'
 import { ExportButton } from '../export/ExportButton'
 import { ImportButton } from './ImportButton'
+import { SiriSetup } from './SiriSetup'
 import { SoundToggle } from './SoundToggle'
 
 /** One consistent settings surface (FR-58): sync, feedback, data, time sense,
@@ -52,6 +53,10 @@ export function SettingsScreen({ email }: { email: string }) {
           <SoundToggle />
         </div>
         <p className="text-sm text-ink-muted">Sound + haptics on task and reward wins.</p>
+      </Section>
+
+      <Section title="Voice & Siri">
+        <SiriSetup />
       </Section>
 
       <Section title="Your data">
