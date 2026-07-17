@@ -53,12 +53,13 @@ export function levelProgress(totalXp: number): LevelProgress {
 }
 
 /**
- * Level titles + epitaphs — a Souls-flavoured rank on an ascending "rekindling"
- * arc: a cold ember coaxed, level by level, into an unfading flame (the fire is
- * momentum — the thing this app manufactures). Titles are competence cues,
- * cosmetic only (P7). The tone borrows Dark Souls' *gravitas* — solemn, mythic,
- * weathered — but never its cruelty: every line is ascendant and earned, never
- * a death, failure, or shame state (P8). The flame only ever grows (P4).
+ * Level titles + epitaphs — a Souls-flavoured rank on an ascending arc of
+ * *competence*: breaking inertia → sustaining focus → executing → following
+ * through → mastering your own time. Each name is an earned epithet for a
+ * productivity virtue; the app's whole job (starting and finishing) is the myth.
+ * Titles are competence cues, cosmetic only (P7). The tone borrows Dark Souls'
+ * *gravitas* — solemn, mythic, weathered — but never its cruelty: every line is
+ * ascendant and earned, never a death, failure, or shame state (P4/P8).
  *
  * Each level carries a `title` (short, shown in the header/stats) and an
  * `epitaph` (a one-line inscription, revealed at the level-up moment).
@@ -69,26 +70,26 @@ interface Rank {
 }
 
 const RANKS: Rank[] = [
-  { title: 'Ashborn', epitaph: 'From cold ash, the first spark stirs.' },
-  { title: 'Ember-Touched', epitaph: 'A faint warmth answers the dark.' },
-  { title: 'Kindler', epitaph: 'You have learned to coax the flame.' },
-  { title: 'Flamebearer', epitaph: 'The fire walks where you walk.' },
-  { title: 'Emberwright', epitaph: 'You forge warmth from will alone.' },
-  { title: 'Ward of Cinders', epitaph: 'The dark keeps its distance now.' },
-  { title: 'Ashen Knight', epitaph: 'Tempered, unhurried, certain.' },
-  { title: 'Pyrekeeper', epitaph: 'Others warm themselves at your fire.' },
-  { title: 'Flamewright', epitaph: 'You bend the blaze to purpose.' },
-  { title: 'Cinderlord', epitaph: 'The long dark remembers your name.' },
-  { title: 'Ashen Sovereign', epitaph: 'Dominion, earned ember by ember.' },
-  { title: 'The Everburning', epitaph: 'A fire that has forgotten how to fade.' },
-  { title: 'Firstflame', epitaph: 'You are the warmth the world was named for.' },
-  { title: 'Undying Beacon', epitaph: 'Seen from every distant dark.' },
-  { title: 'Age of Fire', epitaph: 'History turns to your rekindling.' },
+  { title: 'The Roused', epitaph: 'The long stillness breaks; you move.' },
+  { title: 'Breaker of Inertia', epitaph: 'What would not budge now yields to you.' },
+  { title: 'The Steadfast', epitaph: 'You return to the work, and return again.' },
+  { title: 'Warden of the Hour', epitaph: 'Time answers to your keeping now.' },
+  { title: 'The Unwavering', epitaph: 'Distraction finds no purchase here.' },
+  { title: 'Hand of Execution', epitaph: 'Intent becomes deed in your grip.' },
+  { title: 'Keeper of Vows', epitaph: 'What you swear to do is done.' },
+  { title: 'The Relentless', epitaph: 'You do not tire; you do not stop.' },
+  { title: 'Closer of Loops', epitaph: 'Nothing you begin is left to rot.' },
+  { title: 'The Ironwilled', epitaph: 'Your resolve outlasts the resistance.' },
+  { title: 'Bane of the Undone', epitaph: 'The unfinished fears your coming.' },
+  { title: 'Sovereign of Focus', epitaph: 'Your attention is a throne none may storm.' },
+  { title: 'The Unburdened', epitaph: 'You carry much, yet nothing weighs you down.' },
+  { title: 'Architect of Days', epitaph: 'You do not spend your hours — you forge them.' },
+  { title: 'The Accomplished', epitaph: 'A legend is only a task that someone finished.' },
 ]
 
-/** Past the curated arc the flame is already eternal — grand, distinct, endless. */
-const OVERFLOW_TITLE = 'Everburning'
-const OVERFLOW_EPITAPH = 'The flame outlasts the counting of ages.'
+/** Past the curated arc, mastery keeps climbing — grand, distinct, endless. */
+const OVERFLOW_TITLE = 'Paragon'
+const OVERFLOW_EPITAPH = 'Mastery keeps no final rank.'
 
 function rankForLevel(level: number): Rank {
   return (

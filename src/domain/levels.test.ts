@@ -57,12 +57,12 @@ describe('titleForLevel', () => {
     expect(new Set(titles).size).toBe(titles.length)
   })
 
-  it('starts on the ember arc, not a generic rank', () => {
-    expect(titleForLevel(1)).toBe('Ashborn')
+  it('starts on the competence arc, not a generic rank', () => {
+    expect(titleForLevel(1)).toBe('The Roused')
   })
 
   it('falls back gracefully past the curated arc, still distinct', () => {
-    expect(titleForLevel(30)).toMatch(/^Everburning \d+$/)
+    expect(titleForLevel(30)).toMatch(/^Paragon \d+$/)
     expect(titleForLevel(30)).not.toBe(titleForLevel(31))
   })
 })
