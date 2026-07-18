@@ -109,6 +109,18 @@ export function MatrixScreen() {
   const hoveredPos = hovered ? displayPos(hovered) : null
   const chipClass = chipSizing(tasks.length)
 
+  // One connector per pair of tasks (either direction). Duplicate link rows
+  // otherwise stack two overlapping lines — invisible as lines, but each
+  // carries its own phase-shifted arrow, so the same connector could show
+  // two arrows at once. Collapsing to unique pairs guarantees max one.
+  const seenPairs = new Set<string>()
+  const connectors = links.filter((l) => {
+    const key = [l.blocker_id, l.blocked_id].sort().join(" ")
+    if (seenPairs.has(key)) return false
+    seenPairs.add(key)
+    return true
+  })
+
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-center lg:gap-6">
       <div className="flex min-w-0 flex-col gap-3 lg:basis-[68vh] lg:shrink">
@@ -168,14 +180,14 @@ export function MatrixScreen() {
               the value-space path exactly, even live while a chip is dragged;
               `rotate="auto"` keeps the arrow aimed down the line. Reduced
               motion drops the sweep and leaves the static thread + dot. */}
-          {links.length > 0 && (
+          {connectors.length > 0 && (
             <svg
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 h-full w-full"
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
             >
-              {links.map((link, i) => {
+              {connectors.map((link, i) => {
                 const from = byId.get(link.blocker_id)
                 const to = byId.get(link.blocked_id)
                 if (!from || !to) return null
@@ -187,7 +199,7 @@ export function MatrixScreen() {
                 // Path in value space: blocker (first) → dependent.
                 const flow = `M ${a.urgency} ${100 - a.importance} L ${b.urgency} ${100 - b.importance}`
                 // Stagger phases so multiple links don't drift in lockstep.
-                const begin = `${-(i % 5) * 0.6}s`
+                const begin = `${-(i % 5) * 1.2}s`
                 return (
                   <g key={link.id} className={lit ? 'stroke-accent-base/60' : 'stroke-ink-strong/20'}>
                     <line
@@ -212,7 +224,7 @@ export function MatrixScreen() {
                             last stretch of the cycle, so it sweeps once then the
                             connector rests — exactly one arrow at a time. */}
                         <animateMotion
-                          dur="3s"
+                          dur="6s"
                           begin={begin}
                           repeatCount="indefinite"
                           rotate="auto"
@@ -222,10 +234,11 @@ export function MatrixScreen() {
                           calcMode="linear"
                         />
                         {/* Fade in on the blocker, out on arrival, dark through
-                            the rest — the single arrow never overlaps itself. */}
+                            the rest — the single arrow never overlaps itself.
+                            dur MUST match animateMotion so the two stay in sync. */}
                         <animate
                           attributeName="opacity"
-                          dur="3s"
+                          dur="6s"
                           begin={begin}
                           repeatCount="indefinite"
                           values="0;1;1;0;0"

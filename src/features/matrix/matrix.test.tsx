@@ -156,6 +156,19 @@ describe('matrix screen', () => {
     expect(motion.getAttribute('rotate')).toBe('auto')
   })
 
+  it('draws just one arrow when a dependency pair is duplicated', async () => {
+    const blocker = await seedTask('Design mockups')
+    const blocked = await seedTask('Build the screen')
+    // Two link rows for the SAME pair — must NOT stack two arrows on the line.
+    await db.task_links.add(newTaskLink(blocked.id, blocker.id, crypto.randomUUID(), T0))
+    await db.task_links.add(newTaskLink(blocked.id, blocker.id, crypto.randomUUID(), T0))
+    render(<MatrixScreen />)
+
+    const surface = await screen.findByRole('application', { name: /eisenhower matrix/i })
+    await waitFor(() => expect(surface.querySelectorAll('line').length).toBeGreaterThanOrEqual(1))
+    expect(surface.querySelectorAll('polygon animateMotion').length).toBe(1)
+  })
+
   it('drops the arrow drift under reduced motion, keeping the static line', async () => {
     vi.stubGlobal(
       'matchMedia',
