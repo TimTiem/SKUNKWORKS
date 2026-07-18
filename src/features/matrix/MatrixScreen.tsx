@@ -160,13 +160,14 @@ export function MatrixScreen() {
               stroke stays crisp via non-scaling-stroke. Lines sit UNDER the
               chips and follow a chip live while it's dragged.
 
-              A very low-key arrowhead drifts ALONG each line, from the task
-              that must happen first (the dot end) toward the one that depends
-              on it — a quiet read of "this before that". SMIL `animateMotion`
-              is SVG-native so it tracks the value-space path exactly, even
-              live while a chip is dragged; `rotate="auto"` keeps the arrow
-              aimed down the line. Reduced motion drops the drift entirely and
-              leaves just the static thread + dot (design rule). */}
+              A tiny arrowhead — same shade as this link's line — sweeps ALONG
+              it, from the task that must happen first (the dot end) toward the
+              one that depends on it: a quiet read of "this before that". Just
+              one arrow per connector at a time (it sweeps, then the line rests
+              before the next). SMIL `animateMotion` is SVG-native so it tracks
+              the value-space path exactly, even live while a chip is dragged;
+              `rotate="auto"` keeps the arrow aimed down the line. Reduced
+              motion drops the sweep and leaves the static thread + dot. */}
           {links.length > 0 && (
             <svg
               aria-hidden="true"
@@ -181,7 +182,8 @@ export function MatrixScreen() {
                 const a = displayPos(from)
                 const b = displayPos(to)
                 const lit = selected?.id === from.id || selected?.id === to.id
-                const tone = lit ? 'fill-accent-base/70' : 'fill-ink-strong/30'
+                // Exact same shade as this link's line (stroke-*-*/same alpha).
+                const tone = lit ? 'fill-accent-base/60' : 'fill-ink-strong/20'
                 // Path in value space: blocker (first) → dependent.
                 const flow = `M ${a.urgency} ${100 - a.importance} L ${b.urgency} ${100 - b.importance}`
                 // Stagger phases so multiple links don't drift in lockstep.
@@ -205,23 +207,29 @@ export function MatrixScreen() {
                       stroke="none"
                     />
                     {!reducedMotion && (
-                      <polygon points="1.5,0 -1,1.1 -1,-1.1" className={tone} stroke="none">
+                      <polygon points="0.75,0 -0.5,0.55 -0.5,-0.55" className={tone} stroke="none">
+                        {/* keyPoints holds the arrow at the dependent end for the
+                            last stretch of the cycle, so it sweeps once then the
+                            connector rests — exactly one arrow at a time. */}
                         <animateMotion
                           dur="3s"
                           begin={begin}
                           repeatCount="indefinite"
                           rotate="auto"
                           path={flow}
+                          keyPoints="0;1;1"
+                          keyTimes="0;0.72;1"
+                          calcMode="linear"
                         />
-                        {/* Fade in/out at the ends so the loop restart and the
-                            arrival onto a chip never "pop". */}
+                        {/* Fade in on the blocker, out on arrival, dark through
+                            the rest — the single arrow never overlaps itself. */}
                         <animate
                           attributeName="opacity"
                           dur="3s"
                           begin={begin}
                           repeatCount="indefinite"
-                          values="0;1;1;0"
-                          keyTimes="0;0.25;0.75;1"
+                          values="0;1;1;0;0"
+                          keyTimes="0;0.12;0.6;0.72;1"
                         />
                       </polygon>
                     )}
