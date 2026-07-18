@@ -10,10 +10,12 @@ import {
 } from '../../domain/focus'
 import type { TaskRow } from '../../types/rows'
 import { Button } from '../../ui/primitives/Button'
+import { startSoundscape, stopSoundscape } from '../../ui/soundscape'
 import { useFactReveal } from '../facts/factRevealContext'
 import { useRewardDrop } from '../rewards/rewardDropContext'
 import { FocusRing } from './FocusRing'
 import { completeFocus, endFocus, setFocusDuration } from './focusActions'
+import { useSoundscapePref } from './useSoundscapePref'
 
 /**
  * The single-task focus screen (PRD §3.4). Each tick recomputes from the
@@ -24,6 +26,7 @@ export function FocusScreen({ focus, task }: { focus: ActiveFocus; task: TaskRow
   const [nowMs, setNowMs] = useState(() => Date.now())
   const revealFact = useFactReveal()
   const rollDrop = useRewardDrop()
+  const soundscape = useSoundscapePref()
 
   useEffect(() => {
     const tick = () => setNowMs(Date.now())
@@ -34,6 +37,13 @@ export function FocusScreen({ focus, task }: { focus: ActiveFocus; task: TaskRow
       document.removeEventListener('visibilitychange', tick)
     }
   }, [])
+
+  // Ambient bed follows the pref; always torn down when we leave focus (unmount
+  // on complete/end) so it never outlives the session.
+  useEffect(() => {
+    if (soundscape.enabled) startSoundscape()
+    return () => stopSoundscape()
+  }, [soundscape.enabled])
 
   const remaining = remainingMs(focus, nowMs)
   const overtime = isOvertime(focus, nowMs)
@@ -59,6 +69,21 @@ export function FocusScreen({ focus, task }: { focus: ActiveFocus; task: TaskRow
             ? 'Winding down — find a stopping point.'
             : ''}
       </p>
+
+      <button
+        type="button"
+        aria-pressed={soundscape.enabled}
+        aria-label={soundscape.enabled ? 'Turn focus soundscape off' : 'Turn focus soundscape on'}
+        onClick={() => {
+          const next = !soundscape.enabled
+          soundscape.toggle()
+          if (next) startSoundscape() // start inside the tap so iOS unlocks audio
+          else stopSoundscape()
+        }}
+        className="rounded-pill px-3 py-1.5 text-xs text-ink-muted transition-colors duration-enter ease-standard hover:text-ink-base"
+      >
+        {soundscape.enabled ? '🔉 Soundscape on' : '🔈 Soundscape off'}
+      </button>
 
       <div className="flex gap-2" aria-label="Session length">
         {FOCUS_PRESETS_MS.map((ms) => (

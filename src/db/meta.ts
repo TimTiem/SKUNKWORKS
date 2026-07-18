@@ -10,6 +10,8 @@ export const META_KEYS = {
   activeFocus: 'active_focus',
   /** Device-local: are completion/reward feedback sounds on? Default true. */
   soundEnabled: 'sound_enabled',
+  /** Device-local: play the ambient focus soundscape during a session? Default false. */
+  soundscapeEnabled: 'soundscape_enabled',
   /** Device-local: the app version whose "What's new" has been dismissed. */
   whatsNewSeen: 'whats_new_seen',
 } as const

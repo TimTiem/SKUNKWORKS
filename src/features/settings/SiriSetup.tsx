@@ -108,8 +108,10 @@ export function SiriSetup() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-ink-muted">
-        Add and complete tasks by voice: “Hey Siri, SKUNKWORKS add buy milk.” Create a token, paste
-        it into the shortcut once, and it works hands-free — the app never has to be open.
+        Run SKUNKWORKS by voice — add, complete, snooze, delete, or reprioritise tasks, add or redeem
+        rewards, or ask your status, all hands-free. Say “Hey Siri, SKUNKWORKS”, then speak a command
+        like “add buy milk” or “redeem massage.” Create a token, paste it into the shortcut once, and
+        the app never has to be open.
       </p>
 
       {!online && (
@@ -169,34 +171,43 @@ export function SiriSetup() {
       )}
 
       <details className="rounded-control bg-surface-overlay/60 px-3 py-2 text-sm text-ink-muted">
-        <summary className="cursor-pointer text-ink-base">How to set up the Siri shortcut</summary>
+        <summary className="cursor-pointer text-ink-base">
+          How to set up the “SKUNKWORKS” shortcut
+        </summary>
         <ol className="mt-2 flex list-decimal flex-col gap-1.5 pl-4">
-          <li>Open the iOS Shortcuts app → + → add a “Get Contents of URL” action.</li>
+          <li>Open the iOS Shortcuts app → + (new shortcut).</li>
           <li>
+            Add a <span className="text-ink-base">Text</span> action set to “Ask Each Time” — this is
+            what you dictate.
+          </li>
+          <li>Add a “Get Contents of URL” action:</li>
+          <li className="list-none pl-2">
             URL: <code className="break-all text-ink-base">{ENDPOINT}</code>
           </li>
-          <li>Method: POST. Request Body: JSON.</li>
-          <li>
-            Add a header <code className="text-ink-base">Authorization</code> ={' '}
-            <code className="text-ink-base">Bearer YOUR_TOKEN</code>.
+          <li className="list-none pl-2">Method: POST · Request Body: JSON</li>
+          <li className="list-none pl-2">
+            Header <code className="text-ink-base">x-siri-token</code> ={' '}
+            <code className="text-ink-base">YOUR_TOKEN</code>
+          </li>
+          <li className="list-none pl-2">
+            JSON body: <code className="text-ink-base">text</code> = the Ask-Each-Time value from step
+            2
           </li>
           <li>
-            JSON body: <code className="text-ink-base">action</code> ={' '}
-            <code className="text-ink-base">add</code> (or <code className="text-ink-base">complete</code>),{' '}
-            <code className="text-ink-base">text</code> = a “Dictated Text” / “Ask Each Time” value.
+            Add “Get Dictionary Value” → key <code className="text-ink-base">speak</code>, then “Show
+            Result” of it so Siri reads the confirmation back.
           </li>
           <li>
-            End with “Show Result” of the response’s <code className="text-ink-base">speak</code>{' '}
-            field so Siri reads the confirmation back.
-          </li>
-          <li>
-            Name the shortcut “SKUNKWORKS add” — that name is the phrase Siri listens for. Make a
-            second one with <code className="text-ink-base">action = complete</code> for marking tasks
-            off.
+            Name the shortcut <span className="text-ink-base">SKUNKWORKS</span>. Now say “Hey Siri,
+            SKUNKWORKS”, then speak: “add buy milk”, “complete buy milk”, “snooze taxes”, “redeem
+            massage”, “status”, or “what’s next.”
           </li>
         </ol>
         <p className="mt-2">
-          Full walkthrough (with the completion shortcut and troubleshooting) is in{' '}
+          Prefer a fixed phrase? Duplicate it, add a JSON field{' '}
+          <code className="text-ink-base">action</code> = <code className="text-ink-base">add</code>{' '}
+          (or <code className="text-ink-base">complete</code>) and name it “Add task in SKUNKWORKS”.
+          Full walkthrough, the AI natural-language option, and troubleshooting are in{' '}
           <code className="text-ink-base">docs/SIRI-SETUP.md</code>.
         </p>
       </details>
