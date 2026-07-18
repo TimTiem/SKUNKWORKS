@@ -137,6 +137,48 @@ describe('matrix screen', () => {
     await waitFor(() => expect(surface.querySelectorAll('line').length).toBeGreaterThanOrEqual(1))
   })
 
+  it('drifts a directional arrow from the blocker toward the dependent', async () => {
+    // Blocker urgency ≥ dependent's, so effective urgency isn't pulled and the
+    // rendered path is the raw positions — keeps the assertion deterministic.
+    const blocker = await seedTask('Design mockups', { urgency: 70, importance: 80 })
+    const blocked = await seedTask('Build the screen', { urgency: 40, importance: 30 })
+    await db.task_links.add(newTaskLink(blocked.id, blocker.id, crypto.randomUUID(), T0))
+    render(<MatrixScreen />)
+
+    const surface = await screen.findByRole('application', { name: /eisenhower matrix/i })
+    // A travelling arrowhead (polygon) animated along the dependency path.
+    await waitFor(() =>
+      expect(surface.querySelectorAll('polygon animateMotion').length).toBeGreaterThanOrEqual(1),
+    )
+    const motion = surface.querySelector('polygon animateMotion')!
+    // Path starts at the blocker (must happen first) and ends at the dependent.
+    expect(motion.getAttribute('path')).toBe('M 70 20 L 40 70')
+    expect(motion.getAttribute('rotate')).toBe('auto')
+  })
+
+  it('drops the arrow drift under reduced motion, keeping the static line', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    )
+    try {
+      const blocker = await seedTask('Design mockups')
+      const blocked = await seedTask('Build the screen')
+      await db.task_links.add(newTaskLink(blocked.id, blocker.id, crypto.randomUUID(), T0))
+      render(<MatrixScreen />)
+
+      const surface = await screen.findByRole('application', { name: /eisenhower matrix/i })
+      await waitFor(() => expect(surface.querySelectorAll('line').length).toBeGreaterThanOrEqual(1))
+      expect(surface.querySelectorAll('animateMotion').length).toBe(0)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('names what the selected task is waiting on in the details rail', async () => {
     const blocker = await seedTask('Design mockups')
     const blocked = await seedTask('Build the screen')

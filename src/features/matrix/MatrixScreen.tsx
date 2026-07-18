@@ -4,6 +4,7 @@ import { db } from '../../db/db'
 import { buildPriorityContext, effectiveUrgency, openBlockers } from '../../domain/priority'
 import { completionRewards } from '../../domain/xp'
 import { useNow } from '../../hooks/useNow'
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import type { TaskRow } from '../../types/rows'
 import { setTaskPriority } from '../tasks/taskActions'
 import { pointToPosition, type MatrixPosition } from './matrixMath'
@@ -45,6 +46,7 @@ export function MatrixScreen() {
     [],
   )
   const nowMs = useNow()
+  const reducedMotion = usePrefersReducedMotion()
   const surfaceRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<(MatrixPosition & { id: string }) | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -156,7 +158,15 @@ export function MatrixScreen() {
               waiting on, with a small dot at the blocker end. preserveAspect
               "none" maps the 0–100 value space straight onto the square; the
               stroke stays crisp via non-scaling-stroke. Lines sit UNDER the
-              chips and follow a chip live while it's dragged. */}
+              chips and follow a chip live while it's dragged.
+
+              A very low-key arrowhead drifts ALONG each line, from the task
+              that must happen first (the dot end) toward the one that depends
+              on it — a quiet read of "this before that". SMIL `animateMotion`
+              is SVG-native so it tracks the value-space path exactly, even
+              live while a chip is dragged; `rotate="auto"` keeps the arrow
+              aimed down the line. Reduced motion drops the drift entirely and
+              leaves just the static thread + dot (design rule). */}
           {links.length > 0 && (
             <svg
               aria-hidden="true"
@@ -164,13 +174,18 @@ export function MatrixScreen() {
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
             >
-              {links.map((link) => {
+              {links.map((link, i) => {
                 const from = byId.get(link.blocker_id)
                 const to = byId.get(link.blocked_id)
                 if (!from || !to) return null
                 const a = displayPos(from)
                 const b = displayPos(to)
                 const lit = selected?.id === from.id || selected?.id === to.id
+                const tone = lit ? 'fill-accent-base/70' : 'fill-ink-strong/30'
+                // Path in value space: blocker (first) → dependent.
+                const flow = `M ${a.urgency} ${100 - a.importance} L ${b.urgency} ${100 - b.importance}`
+                // Stagger phases so multiple links don't drift in lockstep.
+                const begin = `${-(i % 5) * 0.6}s`
                 return (
                   <g key={link.id} className={lit ? 'stroke-accent-base/60' : 'stroke-ink-strong/20'}>
                     <line
@@ -189,6 +204,27 @@ export function MatrixScreen() {
                       className={lit ? 'fill-accent-base/70' : 'fill-ink-strong/25'}
                       stroke="none"
                     />
+                    {!reducedMotion && (
+                      <polygon points="1.5,0 -1,1.1 -1,-1.1" className={tone} stroke="none">
+                        <animateMotion
+                          dur="3s"
+                          begin={begin}
+                          repeatCount="indefinite"
+                          rotate="auto"
+                          path={flow}
+                        />
+                        {/* Fade in/out at the ends so the loop restart and the
+                            arrival onto a chip never "pop". */}
+                        <animate
+                          attributeName="opacity"
+                          dur="3s"
+                          begin={begin}
+                          repeatCount="indefinite"
+                          values="0;1;1;0"
+                          keyTimes="0;0.25;0.75;1"
+                        />
+                      </polygon>
+                    )}
                   </g>
                 )
               })}
@@ -352,10 +388,11 @@ export function MatrixScreen() {
             </li>
             <li className="flex items-center gap-2">
               <svg aria-hidden="true" viewBox="0 0 24 8" className="h-2 w-6 shrink-0">
-                <line x1="1" y1="4" x2="23" y2="4" className="stroke-ink-strong/40" strokeWidth="1.5" />
+                <line x1="2" y1="4" x2="19" y2="4" className="stroke-ink-strong/40" strokeWidth="1.5" />
                 <circle cx="2" cy="4" r="1.6" className="fill-ink-strong/50" />
+                <polygon points="23,4 18,6.2 18,1.8" className="fill-ink-strong/50" />
               </svg>
-              Links a task to what it waits on
+              Arrow drifts to the task that waits
             </li>
           </ul>
         </div>
